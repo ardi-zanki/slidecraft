@@ -77,15 +77,26 @@ export default function Settings({ loaderData }: Route.ComponentProps) {
               APIを使用します。ご自身のAPIキーを設定してください。
             </p>
 
-            <a
-              href="https://aistudio.google.com/app/apikey"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
-            >
-              Google AI StudioでAPIキーを取得
-              <ExternalLink className="h-4 w-4" />
-            </a>
+            <div className="flex flex-col gap-2">
+              <a
+                href="https://aistudio.google.com/app/apikey"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
+              >
+                Google AI StudioでAPIキーを取得
+                <ExternalLink className="h-4 w-4" />
+              </a>
+              <Link
+                to="/guides/api-key-setup"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900 hover:underline"
+              >
+                詳しい取得手順を見る
+                <ExternalLink className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
 
           <div className="space-y-2">
