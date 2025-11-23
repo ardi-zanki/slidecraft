@@ -6,7 +6,7 @@ import {
   Loader2,
   Sparkles,
 } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ApiKeyDialog } from '~/components/api-key-dialog'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 import { Button } from '~/components/ui/button'
@@ -72,23 +72,57 @@ export function ControlPanel({
   const promptRef = useRef<HTMLTextAreaElement>(null)
   const prevSlideIdRef = useRef<string>(slide.id)
 
+  // ========================================
+  // 画像管理: Object URLのクリーンアップとプリロード
+  // ========================================
+
+  /**
+   * 既存の画像Object URLをクリーンアップする
+   * メモリリークを防ぐため、スライド切り替え時に実行
+   */
+  const cleanupImageUrls = useCallback(() => {
+    if (originalImage) {
+      URL.revokeObjectURL(originalImage)
+    }
+    candidateImages.forEach((url) => {
+      if (url) {
+        URL.revokeObjectURL(url)
+      }
+    })
+  }, [originalImage, candidateImages])
+
+  /**
+   * オリジナル画像をプリロードする
+   * 候補画像がある場合にスライド切り替え時に実行
+   */
+  const preloadOriginalImage = useCallback(async () => {
+    try {
+      const blob = await loadSlideImage(projectId, slide.id, 'original')
+      const url = URL.createObjectURL(blob)
+      setOriginalImage(url)
+    } catch (err) {
+      console.error('オリジナル画像の読み込みエラー:', err)
+    }
+  }, [projectId, slide.id])
+
+  // ========================================
+  // 為替レート取得
+  // ========================================
+
   // 為替レートを取得（初回のみ）
   useEffect(() => {
     getExchangeRate().then(setExchangeRate)
   }, [])
 
+  // ========================================
+  // スライド切り替え時の画像リセット
+  // ========================================
+
   // スライドが変わったら画像状態をリセットして再読み込み
   useEffect(() => {
     if (prevSlideIdRef.current !== slide.id) {
-      // 既存のオブジェクトURLをクリーンアップ
-      if (originalImage) {
-        URL.revokeObjectURL(originalImage)
-      }
-      candidateImages.forEach((url) => {
-        if (url) {
-          URL.revokeObjectURL(url)
-        }
-      })
+      // 既存のObject URLをクリーンアップ
+      cleanupImageUrls()
 
       // 状態をリセット
       setOriginalImage(null)
@@ -99,25 +133,24 @@ export function ControlPanel({
 
       // 候補がある場合はオリジナル画像をプリロード
       if (slide.generatedCandidates.length > 0) {
-        loadSlideImage(projectId, slide.id, 'original')
-          .then((blob) => {
-            const url = URL.createObjectURL(blob)
-            setOriginalImage(url)
-          })
-          .catch((err) => {
-            console.error('オリジナル画像の読み込みエラー:', err)
-          })
+        preloadOriginalImage()
       }
     }
   }, [
     slide.id,
-    originalImage,
-    candidateImages,
-    projectId,
     slide.generatedCandidates.length,
+    cleanupImageUrls,
+    preloadOriginalImage,
   ])
 
-  // オリジナル画像を読み込む
+  // ========================================
+  // 画像読み込み関数
+  // ========================================
+
+  /**
+   * オリジナル画像を読み込む（遅延ロード用）
+   * マウスオーバー時など、必要に応じて呼び出される
+   */
   const loadOriginalImage = async () => {
     if (originalImage) return
 
@@ -130,7 +163,10 @@ export function ControlPanel({
     }
   }
 
-  // 候補画像を読み込む
+  /**
+   * 候補画像を読み込む（遅延ロード）
+   * 候補画像リストに表示される際に呼び出される
+   */
   const loadCandidateImage = async (generatedId: string) => {
     if (candidateImages.has(generatedId)) {
       return
@@ -152,6 +188,10 @@ export function ControlPanel({
       setCandidateImages((prev) => new Map(prev).set(generatedId, null))
     }
   }
+
+  // ========================================
+  // 生成処理
+  // ========================================
 
   // 生成ボタンクリック
   const handleGenerate = async () => {
