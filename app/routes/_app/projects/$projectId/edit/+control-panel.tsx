@@ -193,20 +193,90 @@ export function ControlPanel({
   // 生成処理
   // ========================================
 
-  // 生成ボタンクリック
-  const handleGenerate = async () => {
+  /**
+   * プロンプト入力のバリデーション
+   * @returns バリデーション成功時true、失敗時false
+   */
+  const validatePrompt = (): boolean => {
     // APIキーがない場合はダイアログを表示
     if (!hasApiKey()) {
       setShowApiKeyDialog(true)
-      return
+      return false
     }
 
+    // プロンプトが空の場合はエラー表示
     if (!prompt.trim()) {
       setValidationError('修正内容を入力してください')
       promptRef.current?.focus()
+      return false
+    }
+
+    return true
+  }
+
+  /**
+   * 生成された画像を保存してメタデータを更新
+   */
+  const saveGeneratedImages = async (
+    generatedImages: Array<{
+      id: string
+      dataUrl: string
+      timestamp: number
+    }>,
+  ) => {
+    const newCandidates = []
+
+    for (let i = 0; i < generatedImages.length; i++) {
+      const generated = generatedImages[i]
+      setGenerationProgress({ current: i + 2, total: generationCount + 1 })
+
+      // Data URLをBlobに変換
+      const generatedBlob = await dataUrlToBlob(generated.dataUrl)
+
+      // 生成画像を保存
+      await saveSlideImage(
+        projectId,
+        slide.id,
+        'generated',
+        generatedBlob,
+        generated.id,
+      )
+
+      // 候補リストに追加
+      newCandidates.push({
+        id: generated.id,
+        prompt,
+        timestamp: new Date(generated.timestamp).toISOString(),
+      })
+
+      // 候補画像をプリロード
+      await loadCandidateImage(generated.id)
+    }
+
+    // スライドメタデータを更新
+    const updatedSlide: Slide = {
+      ...slide,
+      lastPrompt: prompt,
+      generatedCandidates: [...newCandidates, ...slide.generatedCandidates],
+    }
+
+    const updatedSlides = allSlides.map((s) =>
+      s.id === slide.id ? updatedSlide : s,
+    )
+    await saveSlides(projectId, updatedSlides)
+
+    // 更新を通知
+    onSlideUpdate()
+  }
+
+  // 生成ボタンクリック
+  const handleGenerate = async () => {
+    // バリデーション
+    if (!validatePrompt()) {
       return
     }
 
+    // 状態をリセット
     setValidationError(null)
     setGenerationError(null)
     setIsGenerating(true)
@@ -221,6 +291,8 @@ export function ControlPanel({
       // コスト計算
       const costEstimate = calculateGenerationCost(prompt, generationCount)
       setLastGenerationCost(costEstimate.totalCost)
+
+      // APIキー取得
       const apiKey = getApiKey()
       if (!apiKey) {
         throw new Error('APIキーが設定されていません')
@@ -241,55 +313,12 @@ export function ControlPanel({
         generationCount,
       )
 
-      // 生成された画像を保存
-      const newCandidates = []
-      for (let i = 0; i < generatedImages.length; i++) {
-        const generated = generatedImages[i]
-        setGenerationProgress({ current: i + 2, total: generationCount + 1 })
-
-        // Data URLをBlobに変換
-        const generatedBlob = await dataUrlToBlob(generated.dataUrl)
-
-        // 生成画像を保存
-        await saveSlideImage(
-          projectId,
-          slide.id,
-          'generated',
-          generatedBlob,
-          generated.id,
-        )
-
-        // 候補リストに追加
-        newCandidates.push({
-          id: generated.id,
-          prompt,
-          timestamp: new Date(generated.timestamp).toISOString(),
-        })
-
-        // 候補画像をプリロード
-        await loadCandidateImage(generated.id)
-      }
-
-      // スライドメタデータを更新
-      const updatedSlide: Slide = {
-        ...slide,
-        lastPrompt: prompt,
-        generatedCandidates: [...newCandidates, ...slide.generatedCandidates],
-      }
-
-      const updatedSlides = allSlides.map((s) =>
-        s.id === slide.id ? updatedSlide : s,
-      )
-      await saveSlides(projectId, updatedSlides)
-
-      // 更新を通知
-      onSlideUpdate()
+      // 生成された画像を保存してメタデータ更新
+      await saveGeneratedImages(generatedImages)
 
       // GA4: 生成完了イベント
       const duration = Date.now() - startTime
       trackGenerationCompleted(generationCount, duration)
-
-      // GA4: 初回生成完了イベント（コンバージョン）
       trackFirstGenerationCompleted(generationCount, duration)
     } catch (err) {
       console.error('スライド修正エラー:', err)
@@ -305,7 +334,10 @@ export function ControlPanel({
     }
   }
 
-  // 候補を選択（'original'の場合は元に戻す）
+  /**
+   * 候補画像を選択してスライドに適用する
+   * @param generatedId 生成画像ID（nullの場合はオリジナルに戻す）
+   */
   const handleSelectCandidate = async (generatedId: string | null) => {
     try {
       const updatedSlide: Slide = {
