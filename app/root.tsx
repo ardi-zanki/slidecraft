@@ -11,7 +11,7 @@ import {
 
 import type { Route } from './+types/root'
 import './app.css'
-import { trackPageView } from './lib/analytics'
+import { trackPageView, trackRepeatUser } from './lib/analytics'
 
 export const links: Route.LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -63,7 +63,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   const location = useLocation()
 
-  // Track page views on client-side navigation
+  // Sync with localStorage to track repeat users
+  // External system: localStorage (visit_count)
+  useEffect(() => {
+    trackRepeatUser()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Sync with Google Analytics on route changes
+  // External system: Google Analytics (gtag)
   useEffect(() => {
     trackPageView(location.pathname + location.search)
   }, [location])

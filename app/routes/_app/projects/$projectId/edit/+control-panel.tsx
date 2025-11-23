@@ -5,6 +5,7 @@ import { Alert, AlertDescription } from '~/components/ui/alert'
 import { Button } from '~/components/ui/button'
 import { Textarea } from '~/components/ui/textarea'
 import {
+  trackFirstGenerationCompleted,
   trackGenerationCompleted,
   trackGenerationFailed,
   trackGenerationStarted,
@@ -194,6 +195,9 @@ export function ControlPanel({
       // GA4: 生成完了イベント
       const duration = Date.now() - startTime
       trackGenerationCompleted(generationCount, duration)
+
+      // GA4: 初回生成完了イベント（コンバージョン）
+      trackFirstGenerationCompleted(generationCount, duration)
     } catch (err) {
       console.error('スライド修正エラー:', err)
       const errorMessage =

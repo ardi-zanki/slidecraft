@@ -81,3 +81,35 @@ export function trackApiKeySet() {
 export function trackApiKeyRemoved() {
   trackEvent('api_key_removed')
 }
+
+// Conversion events
+export function trackFirstGenerationCompleted(
+  candidateCount: number,
+  duration: number,
+) {
+  // Check if this is the first generation
+  const hasGeneratedBefore = localStorage.getItem('has_generated_slide')
+
+  if (!hasGeneratedBefore) {
+    trackEvent('first_generation_completed', {
+      candidate_count: candidateCount,
+      duration_ms: duration,
+    })
+    localStorage.setItem('has_generated_slide', 'true')
+  }
+}
+
+export function trackRepeatUser() {
+  const visitCount = Number.parseInt(
+    localStorage.getItem('visit_count') || '0',
+    10,
+  )
+
+  if (visitCount > 0) {
+    trackEvent('repeat_user', {
+      visit_count: visitCount + 1,
+    })
+  }
+
+  localStorage.setItem('visit_count', String(visitCount + 1))
+}
