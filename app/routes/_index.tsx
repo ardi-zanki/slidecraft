@@ -48,7 +48,8 @@ export default function Index() {
             </Button>
           </div>
           <p className="mt-4 text-sm text-slate-500">
-            ※アプリは無料ですが、AI修正にはGoogle Gemini APIの利用料（1スライド修正あたり約20円）が別途かかります
+            ※アプリは無料ですが、AI修正にはGoogle Gemini
+            APIの利用料（1スライド修正あたり約20円）が別途かかります
           </p>
         </div>
       </section>
@@ -119,7 +120,8 @@ export default function Index() {
             </Link>
           </Button>
           <p className="mt-4 text-sm text-slate-400">
-            ※AI修正にはGoogle Gemini APIの利用料（1スライド修正あたり約20円）が別途かかります
+            ※AI修正にはGoogle Gemini
+            APIの利用料（1スライド修正あたり約20円）が別途かかります
           </p>
         </div>
       </section>
@@ -133,7 +135,7 @@ export default function Index() {
               href="https://www.techtalk.jp"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-slate-900 underline"
+              className="underline hover:text-slate-900"
             >
               TechTalk Inc.
             </a>{' '}

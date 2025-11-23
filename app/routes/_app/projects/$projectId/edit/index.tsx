@@ -9,11 +9,11 @@ import {
 } from '~/components/ui/resizable'
 import { getProject } from '~/lib/projects-repository.client'
 import { loadSlides } from '~/lib/slides-repository.client'
-import type { Route } from './+types/index'
 import { EditorActions } from './+actions'
 import { ControlPanel } from './+control-panel'
 import { MainPreview } from './+main-preview'
 import { Sidebar } from './+sidebar'
+import type { Route } from './+types/index'
 
 export const handle = {
   breadcrumb: (data: Route.ComponentProps['loaderData']) => ({
@@ -74,7 +74,10 @@ export default function Editor({ loaderData }: Route.ComponentProps) {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <EditorActions projectId={projectId} slides={slides} />
-      <ResizablePanelGroup direction="horizontal" className="flex-1 overflow-hidden">
+      <ResizablePanelGroup
+        direction="horizontal"
+        className="flex-1 overflow-hidden"
+      >
         <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
           <Sidebar
             projectId={projectId}

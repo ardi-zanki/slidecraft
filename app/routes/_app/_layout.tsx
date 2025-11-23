@@ -1,5 +1,5 @@
-import { Outlet, useLocation } from 'react-router'
 import { useEffect } from 'react'
+import { Outlet, useLocation } from 'react-router'
 import { AppSidebar } from '~/components/layout/app-sidebar'
 import { Main } from '~/components/layout/main'
 import { Separator } from '~/components/ui/separator'
@@ -39,7 +39,7 @@ function AppLayoutContent() {
           'flex h-svh flex-col',
         )}
       >
-        <header className="flex h-12 items-center gap-3 border-b bg-background px-4 sm:gap-4">
+        <header className="bg-background flex h-12 items-center gap-3 border-b px-4 sm:gap-4">
           <SidebarTrigger className="-ml-1 scale-125 sm:scale-100" />
           <Separator orientation="vertical" className="h-6" />
           <div className="flex w-full items-center justify-between gap-2">
