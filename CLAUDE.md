@@ -100,6 +100,109 @@ This convention applies to:
 
 Write design docs and specifications in natural Japanese prose focused on "why" and "what". Build logical narratives that flow: problem → reasoning → approach → implications. Explain technical terms within context. Minimize bullet points, tables, and emojis. Keep the tone professional (質実剛健).
 
+## UI/UX Design Guidelines
+
+Follow the principles outlined in `docs/design-policy.md`. Prioritize **usability over visual aesthetics**. The core philosophy is that users should never feel blocked, always receive immediate feedback, and can easily recover from any state.
+
+### Design Principles
+
+**Operations Should Not Block Users**
+
+- Background processing when possible
+- Provide cancel buttons for long operations
+- Minimize modal dialogs; prefer popovers/toasts
+- ESC key and background click must close dialogs
+
+**Immediate Feedback**
+
+- Visual feedback for all interactions (clicks, inputs)
+- Clear loading, success, and error states
+- Progressive rendering to avoid layout shift
+- Optimistic UI where appropriate (with rollback handling)
+
+**Easy State Recovery**
+
+- Always provide back navigation
+- Preserve scroll position on navigation (use React Router's ScrollRestoration with getKey)
+- Maintain form input state across navigation
+- Confirmation or undo for destructive actions
+
+**Predictable Behavior**
+
+- Consistent UI patterns throughout the app
+- Specific button labels ("Save", "Delete" not "OK")
+- Clear visual distinction for links vs buttons
+- Disable states are clearly distinguishable
+
+### Brand-Aligned Component Standards
+
+**Colors** (from `docs/brand-guidelines.md`)
+
+- Primary: `#334155` (Slate Gray) - text-slate-700, bg-slate-700
+- Accent: `#3B82F6` (Blue) - text-blue-500, bg-blue-500
+- Success: `#10B981` (Green) - text-emerald-500
+- Warning: `#F59E0B` (Amber) - text-amber-600
+- Border: `#E2E8F0` (Border Gray) - border-slate-200
+
+**Loading Indicators**
+
+- Button loading: `h-4 w-4` (16px) with `text-blue-500`
+- Inline loading: `h-4 w-4 animate-spin` with context-appropriate color
+- Full page loading: centered, `h-6 w-6` (24px)
+- Use Lucide's `Loader2` icon for consistency
+
+**Icons** (Lucide Icons)
+
+- Small: `h-4 w-4` (16px) - inline with text, button icons
+- Medium: `h-5 w-5` (20px) - standalone icons
+- Large: `h-6 w-6` (24px) - feature icons, headers
+- Style: Outline (not filled)
+- Color: Match surrounding text color
+
+**Spacing** (8px system)
+
+- xs: 4px (`gap-1`, `p-1`)
+- sm: 8px (`gap-2`, `p-2`)
+- md: 16px (`gap-4`, `p-4`)
+- lg: 24px (`gap-6`, `p-6`)
+- xl: 32px (`gap-8`, `p-8`)
+
+**Buttons**
+
+- Primary: `bg-slate-700 text-white hover:bg-slate-600`
+- Secondary: `bg-white border border-slate-200 text-slate-700 hover:bg-slate-50`
+- Accent: `bg-blue-500 text-white hover:bg-blue-600`
+- Padding: `px-6 py-3` (24px horizontal, 12px vertical)
+- Border radius: `rounded-md` (6px)
+
+**Error Handling**
+
+- Implement comprehensive error boundaries with `RouteErrorBoundary`
+- Display user-friendly error messages
+- Provide recovery actions (retry, go back)
+- Log errors for debugging but don't expose technical details to users
+
+**Navigation**
+
+- Breadcrumb navigation always available
+- Use React Router's `ScrollRestoration` with custom `getKey` for scroll position management
+- Preserve list position when returning from detail views
+
+### Implementation Checklist
+
+Before shipping a new feature, verify:
+
+- [ ] Operations don't block users unnecessarily
+- [ ] Long operations have cancel buttons
+- [ ] All interactions provide immediate visual feedback
+- [ ] Loading states use brand colors (blue-500) and correct sizes
+- [ ] Error boundaries catch and display errors appropriately
+- [ ] Navigation preserves scroll position and form state
+- [ ] Buttons have specific, predictive labels
+- [ ] Icons use Lucide with consistent sizes
+- [ ] Spacing follows 8px system
+- [ ] Destructive actions have confirmation or undo
+
 ## Docker Deployment
 
 Multi-stage Dockerfile builds:

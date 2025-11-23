@@ -179,8 +179,9 @@ export default function ApiKeySetupGuide() {
                 <div className="rounded-md bg-amber-50 p-4">
                   <p className="text-sm text-amber-800">
                     <strong>重要:</strong>{' '}
-                    無料枠内であれば課金されません。月間の無料枠は、Gemini 1.5
-                    Flashモデルで約1500回の画像生成に相当します。通常の使用では無料枠で十分です。
+                    無料枠内であれば課金されません。月間の無料枠は、Gemini 3 Pro
+                    Image (Nano Banana
+                    Pro)モデルで約1500回の画像生成に相当します。通常の使用では無料枠で十分です。
                   </p>
                 </div>
               </div>
@@ -237,7 +238,7 @@ export default function ApiKeySetupGuide() {
             </p>
             <div className="rounded-lg border border-slate-200 bg-white p-6">
               <h4 className="mb-3 font-bold text-slate-900">
-                Gemini 1.5 Flash（SlideCraftで使用）
+                Gemini 3 Pro Image - Nano Banana Pro（SlideCraftで使用）
               </h4>
               <div className="space-y-2 text-sm text-slate-600">
                 <p>

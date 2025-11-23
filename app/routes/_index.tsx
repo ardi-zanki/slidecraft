@@ -588,7 +588,7 @@ export default function Index() {
           </div>
 
           <div className="mt-8 text-xs text-slate-400">
-            ※ Gemini 1.5 Flash
+            ※ Gemini 3 Pro Image (Nano Banana Pro)
             モデルを使用した場合の概算です。為替レートやGoogleの価格改定により変動します。
           </div>
         </div>
