@@ -3,7 +3,6 @@ import {
   ArrowRight,
   Check,
   Clock,
-  Layout,
   Lock,
   MousePointerClick,
   Shield,
@@ -32,6 +31,9 @@ export function meta(): Route.MetaDescriptors {
     { property: 'og:url', content: url },
     { property: 'og:title', content: title },
     { property: 'og:description', content: description },
+    { property: 'og:image', content: `${url}/ogp.jpg` },
+    { property: 'og:image:width', content: '1200' },
+    { property: 'og:image:height', content: '630' },
     { property: 'og:site_name', content: 'SlideCraft' },
     { property: 'og:locale', content: 'ja_JP' },
 
@@ -39,6 +41,7 @@ export function meta(): Route.MetaDescriptors {
     { name: 'twitter:card', content: 'summary_large_image' },
     { name: 'twitter:title', content: title },
     { name: 'twitter:description', content: description },
+    { name: 'twitter:image', content: `${url}/ogp.jpg` },
   ]
 }
 
@@ -111,9 +114,7 @@ export default function Index() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-700 text-white">
-                <Layout className="h-5 w-5" />
-              </div>
+              <img src="/logo.svg" alt="SlideCraft" className="h-8 w-8" />
               <span className="text-xl font-bold tracking-tight text-slate-800">
                 SlideCraft
               </span>
@@ -163,9 +164,16 @@ export default function Index() {
                 <Badge className="bg-blue-50 text-blue-600">
                   Professional Beta
                 </Badge>
-                <Badge className="bg-slate-100 text-slate-700">
-                  Open Source
-                </Badge>
+                <a
+                  href="https://github.com/techtalkjp/slidecraft"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-opacity hover:opacity-80"
+                >
+                  <Badge className="bg-slate-100 text-slate-700 cursor-pointer">
+                    Open Source
+                  </Badge>
+                </a>
               </div>
               <h1 className="text-4xl leading-[1.2] font-bold tracking-tight text-slate-900 lg:text-5xl">
                 AI生成スライド、
@@ -644,9 +652,7 @@ export default function Index() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
             <div className="flex items-center gap-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded bg-slate-700 text-white">
-                <Layout className="h-3.5 w-3.5" />
-              </div>
+              <img src="/logo.svg" alt="SlideCraft" className="h-6 w-6" />
               <span className="font-bold text-slate-800">SlideCraft</span>
             </div>
             <div className="flex gap-8 text-sm text-slate-500">
