@@ -4,6 +4,11 @@ import { ApiKeyDialog } from '~/components/api-key-dialog'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 import { Button } from '~/components/ui/button'
 import { Textarea } from '~/components/ui/textarea'
+import {
+  trackGenerationCompleted,
+  trackGenerationFailed,
+  trackGenerationStarted,
+} from '~/lib/analytics'
 import { getApiKey, hasApiKey } from '~/lib/api-settings.client'
 import {
   calculateGenerationCost,
@@ -114,6 +119,10 @@ export function ControlPanel({
     setGenerationProgress({ current: 0, total: generationCount })
     setLastGenerationCost(null)
 
+    // GA4: 生成開始イベント
+    const startTime = Date.now()
+    trackGenerationStarted(generationCount)
+
     try {
       // コスト計算
       const costEstimate = calculateGenerationCost(prompt, generationCount)
@@ -181,11 +190,18 @@ export function ControlPanel({
 
       // 更新を通知
       onSlideUpdate()
+
+      // GA4: 生成完了イベント
+      const duration = Date.now() - startTime
+      trackGenerationCompleted(generationCount, duration)
     } catch (err) {
       console.error('スライド修正エラー:', err)
-      setGenerationError(
-        err instanceof Error ? err.message : 'スライドの修正に失敗しました',
-      )
+      const errorMessage =
+        err instanceof Error ? err.message : 'スライドの修正に失敗しました'
+      setGenerationError(errorMessage)
+
+      // GA4: 生成失敗イベント
+      trackGenerationFailed(errorMessage)
     } finally {
       setIsGenerating(false)
       setGenerationProgress(null)

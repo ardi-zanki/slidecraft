@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import {
   isRouteErrorResponse,
   Links,
@@ -5,10 +6,12 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLocation,
 } from 'react-router'
 
 import type { Route } from './+types/root'
 import './app.css'
+import { trackPageView } from './lib/analytics'
 
 export const links: Route.LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -25,12 +28,28 @@ export const links: Route.LinksFunction = () => [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="ja">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
+        {/* Google Analytics */}
+        <script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-MYGWWZDCP2"
+        />
+        <script
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: Google Analytics initialization requires inline script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-MYGWWZDCP2');
+            `,
+          }}
+        />
       </head>
       <body>
         {children}
@@ -42,6 +61,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const location = useLocation()
+
+  // Track page views on client-side navigation
+  useEffect(() => {
+    trackPageView(location.pathname + location.search)
+  }, [location])
+
   return <Outlet />
 }
 

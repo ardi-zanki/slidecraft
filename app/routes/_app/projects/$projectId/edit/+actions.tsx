@@ -2,6 +2,7 @@ import { Download, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Button } from '~/components/ui/button'
+import { trackPdfExported } from '~/lib/analytics'
 import { downloadPdf, generatePdfFromSlides } from '~/lib/pdf-generator.client'
 import type { Slide } from '~/lib/types'
 
@@ -42,6 +43,9 @@ export function EditorActions({ projectId, slides }: EditorActionsProps) {
       // ダウンロード
       const timestamp = new Date().toISOString().split('T')[0]
       downloadPdf(pdfBlob, `slides-edited-${timestamp}`)
+
+      // GA4: PDFエクスポートイベント
+      trackPdfExported(slides.length)
     } catch (err) {
       console.error('PDFエクスポートエラー:', err)
       setError(err instanceof Error ? err.message : 'PDFの生成に失敗しました')

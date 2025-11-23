@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router'
 import { Button } from '~/components/ui/button'
 import { Card } from '~/components/ui/card'
 import { Progress } from '~/components/ui/progress'
+import { trackPdfUploaded, trackProjectCreated } from '~/lib/analytics'
 import { convertPdfToSlides } from '~/lib/pdf-processor.client'
 import { createProject, updateProject } from '~/lib/projects-repository.client'
 import { saveSlides } from '~/lib/slides-repository.client'
@@ -45,6 +46,9 @@ export default function Upload() {
         file.name.replace(/\.pdf$/i, '') || `プロジェクト ${Date.now()}`
       const project = await createProject(projectName, 0)
 
+      // GA4: プロジェクト作成イベント
+      trackProjectCreated()
+
       // PDFをスライドに変換（projectIdを渡す）
       const slides = await convertPdfToSlides(
         project.id,
@@ -59,6 +63,9 @@ export default function Upload() {
 
       // スライドを保存
       await saveSlides(project.id, slides)
+
+      // GA4: PDFアップロード完了イベント
+      trackPdfUploaded(slides.length)
 
       // エディター画面にリダイレクト
       navigate(`/projects/${project.id}/edit`)

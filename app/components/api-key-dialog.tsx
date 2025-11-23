@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from '~/components/ui/dialog'
 import { Input } from '~/components/ui/input'
+import { trackApiKeySet } from '~/lib/analytics'
 import { getApiKey, saveApiKey } from '~/lib/api-settings.client'
 
 interface ApiKeyDialogProps {
@@ -36,6 +37,10 @@ export function ApiKeyDialog({
 
     try {
       saveApiKey(apiKey)
+
+      // GA4: APIキー設定イベント
+      trackApiKeySet()
+
       onOpenChange(false)
       onSaved?.()
     } catch (err) {
