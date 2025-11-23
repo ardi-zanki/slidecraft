@@ -609,7 +609,7 @@ export default function Index() {
               </h3>
               <p className="pl-7 text-sm leading-relaxed text-slate-600">
                 Google AI
-                Studioで5分程度で取得可能です。クレジットカードの登録が必要ですが、無料枠内で収まる場合も多いです。
+                Studioで5分程度で取得可能です。クレジットカードの登録が必要ですが、使った分だけの従量課金です。
                 <Link
                   to="/guides/api-key-setup"
                   className="ml-1 font-medium text-blue-600 hover:underline"

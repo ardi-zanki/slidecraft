@@ -84,8 +84,7 @@ export default function ApiKeySetupGuide() {
                 <li className="flex items-start gap-3">
                   <span className="mt-1 text-blue-500">●</span>
                   <span>
-                    クレジットカード -
-                    無料枠内でも登録必須（不正利用防止のため）
+                    クレジットカード - 有料モデル利用のため請求先登録が必要
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -134,13 +133,21 @@ export default function ApiKeySetupGuide() {
                     2
                   </div>
                   <h3 className="text-lg font-bold text-slate-900">
-                    「Get API key」ボタンをクリック
+                    利用規約に同意（初回のみ）
                   </h3>
                 </div>
-                <p className="text-slate-600">
-                  ページ上部に表示される「Get API key」または「APIキーを取得」
-                  ボタンをクリックします。
+                <p className="mb-3 text-slate-600">
+                  初めて利用する場合、利用規約（Terms of
+                  Service）への同意が求められます。
                 </p>
+                <div className="rounded-md bg-blue-50 p-4">
+                  <p className="text-sm text-blue-800">
+                    <strong>新規ユーザーの方へ:</strong>{' '}
+                    利用規約に同意すると、Google AI
+                    Studioが自動的にデフォルトのGoogle Cloud ProjectとAPI
+                    Keyを作成します。すぐに使い始められます。
+                  </p>
+                </div>
               </div>
 
               {/* Step 3 */}
@@ -150,17 +157,17 @@ export default function ApiKeySetupGuide() {
                     3
                   </div>
                   <h3 className="text-lg font-bold text-slate-900">
-                    Google Cloud プロジェクトを作成
+                    APIキーの確認・管理
                   </h3>
                 </div>
                 <p className="mb-3 text-slate-600">
-                  初めて利用する場合、新しいプロジェクトを作成する必要があります。
+                  左側パネルの「Dashboard」から「API
+                  Keys」ページを開きます。自動作成されたAPIキーが表示されています。
                 </p>
-                <ul className="space-y-2 text-sm text-slate-600">
-                  <li>● 「Create API key in new project」を選択（推奨）</li>
-                  <li>● プロジェクト名は自動生成されます（変更可能）</li>
-                  <li>● 「Create」をクリック</li>
-                </ul>
+                <p className="text-sm text-slate-600">
+                  既存のGoogle Cloudユーザーの場合は、「Import
+                  projects」ボタンから既存プロジェクトをインポートして、そこに新しいAPIキーを作成することもできます。
+                </p>
               </div>
 
               {/* Step 4 */}
@@ -174,14 +181,23 @@ export default function ApiKeySetupGuide() {
                   </h3>
                 </div>
                 <p className="mb-3 text-slate-600">
-                  無料枠を超えた場合の請求先として、クレジットカード情報を登録します。
+                  Gemini 3 Pro Image (Nano Banana
+                  Pro)は有料モデルのため、クレジットカード情報の登録が必要です。
                 </p>
+                <ul className="mb-3 space-y-2 text-sm text-slate-600">
+                  <li>● Google Cloud Consoleの「お支払い」セクションを開く</li>
+                  <li>
+                    ● 請求先アカウントを作成し、クレジットカード情報を登録
+                  </li>
+                  <li>
+                    ●
+                    プロジェクトと請求先アカウントをリンク（自動的に行われる場合もあります）
+                  </li>
+                </ul>
                 <div className="rounded-md bg-amber-50 p-4">
                   <p className="text-sm text-amber-800">
-                    <strong>重要:</strong>{' '}
-                    無料枠内であれば課金されません。月間の無料枠は、Gemini 3 Pro
-                    Image (Nano Banana
-                    Pro)モデルで約1500回の画像生成に相当します。通常の使用では無料枠で十分です。
+                    <strong>注意:</strong>{' '}
+                    利用した分だけ料金が発生します。1スライド修正あたり約20円です。
                   </p>
                 </div>
               </div>
@@ -197,7 +213,8 @@ export default function ApiKeySetupGuide() {
                   </h3>
                 </div>
                 <p className="mb-3 text-slate-600">
-                  生成されたAPIキー（`AIza...`で始まる長い文字列）をコピーします。
+                  Google AI
+                  Studioに戻り、表示されたAPIキー（`AIza...`で始まる長い文字列）をコピーします。
                 </p>
                 <div className="rounded-md bg-blue-50 p-4">
                   <p className="text-sm text-blue-800">
@@ -230,28 +247,48 @@ export default function ApiKeySetupGuide() {
           {/* Pricing */}
           <section className="mb-12">
             <h2 className="mb-4 text-2xl font-bold text-slate-900">
-              無料枠と料金について
+              料金について
             </h2>
             <p className="mb-4 leading-relaxed text-slate-600">
-              Gemini
-              APIには無料枠があり、通常の個人利用であれば無料枠内で収まるケースがほとんどです。
+              Google AI
+              Studio自体は無料で利用できます。ただし、SlideCraftで使用するGemini
+              3 Pro Image (Nano Banana
+              Pro)は有料プレビューモデルのため、利用には料金が発生します。
             </p>
-            <div className="rounded-lg border border-slate-200 bg-white p-6">
-              <h4 className="mb-3 font-bold text-slate-900">
-                Gemini 3 Pro Image - Nano Banana Pro（SlideCraftで使用）
+
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-6">
+              <h4 className="mb-3 font-bold text-amber-900">
+                Gemini 3 Pro Image (Nano Banana Pro) の料金
               </h4>
-              <div className="space-y-2 text-sm text-slate-600">
+              <div className="space-y-3 text-sm text-amber-800">
                 <p>
-                  <strong>無料枠:</strong>{' '}
-                  月間1500リクエスト（画像入力含む）まで無料
+                  SlideCraftで使用する Gemini 3 Pro Image (Nano Banana Pro) は、
+                  <strong>有料プレビュー（Paid Preview）</strong>
+                  として提供されており、
+                  <strong>無料枠では利用できません</strong>。
                 </p>
+                <div className="rounded-md bg-white p-4">
+                  <p className="mb-2 font-bold text-slate-900">
+                    実際の利用料金:
+                  </p>
+                  <p className="text-slate-700">
+                    1スライド修正あたり約20円（為替レートにより変動）
+                  </p>
+                </div>
                 <p>
-                  <strong>無料枠超過後:</strong>{' '}
-                  1スライド修正あたり約20円（為替レートにより変動）
+                  ただし、APIの利用制限（1日1500リクエスト、1分15リクエスト）は適用されるため、使いすぎを防ぐことができます。
                 </p>
-                <p className="mt-4 text-xs text-slate-500">
-                  ※
-                  詳細な料金はGoogleの公式ドキュメントをご確認ください。予告なく変更される場合があります。
+                <p className="mt-4 text-xs">
+                  ※ 最新の料金情報は
+                  <a
+                    href="https://ai.google.dev/gemini-api/docs/pricing"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-amber-600"
+                  >
+                    Googleの公式ドキュメント
+                  </a>
+                  をご確認ください。予告なく変更される場合があります。
                 </p>
               </div>
             </div>
@@ -273,11 +310,12 @@ export default function ApiKeySetupGuide() {
               </div>
               <div className="rounded-lg border border-slate-200 p-4">
                 <h4 className="mb-2 font-bold text-slate-900">
-                  請求先アカウントの設定がうまくいかない
+                  既存のGoogle Cloudプロジェクトを使いたい
                 </h4>
                 <p className="text-sm text-slate-600">
-                  Google Cloud
-                  Consoleから直接設定することもできます。「お支払い」セクションから請求先アカウントを作成してください。
+                  Google AI Studioのダッシュボードから「Projects」→「Import
+                  projects」を選択し、既存のGoogle
+                  Cloudプロジェクトを検索・インポートできます。インポート後、そのプロジェクトにAPIキーを作成できます。
                 </p>
               </div>
               <div className="rounded-lg border border-slate-200 p-4">
