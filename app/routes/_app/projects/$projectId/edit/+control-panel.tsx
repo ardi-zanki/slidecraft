@@ -70,11 +70,52 @@ export function ControlPanel({
   const [exchangeRate, setExchangeRate] = useState<number | null>(null)
   const [showApiKeyDialog, setShowApiKeyDialog] = useState(false)
   const promptRef = useRef<HTMLTextAreaElement>(null)
+  const prevSlideIdRef = useRef<string>(slide.id)
 
   // 為替レートを取得（初回のみ）
   useEffect(() => {
     getExchangeRate().then(setExchangeRate)
   }, [])
+
+  // スライドが変わったら画像状態をリセットして再読み込み
+  useEffect(() => {
+    if (prevSlideIdRef.current !== slide.id) {
+      // 既存のオブジェクトURLをクリーンアップ
+      if (originalImage) {
+        URL.revokeObjectURL(originalImage)
+      }
+      candidateImages.forEach((url) => {
+        if (url) {
+          URL.revokeObjectURL(url)
+        }
+      })
+
+      // 状態をリセット
+      setOriginalImage(null)
+      setCandidateImages(new Map())
+
+      // 現在のスライドIDを記憶
+      prevSlideIdRef.current = slide.id
+
+      // 候補がある場合はオリジナル画像をプリロード
+      if (slide.generatedCandidates.length > 0) {
+        loadSlideImage(projectId, slide.id, 'original')
+          .then((blob) => {
+            const url = URL.createObjectURL(blob)
+            setOriginalImage(url)
+          })
+          .catch((err) => {
+            console.error('オリジナル画像の読み込みエラー:', err)
+          })
+      }
+    }
+  }, [
+    slide.id,
+    originalImage,
+    candidateImages,
+    projectId,
+    slide.generatedCandidates.length,
+  ])
 
   // オリジナル画像を読み込む
   const loadOriginalImage = async () => {
