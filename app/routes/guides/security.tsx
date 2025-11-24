@@ -17,7 +17,7 @@ export function meta(): Route.MetaDescriptors {
     { property: 'og:url', content: url },
     { property: 'og:title', content: title },
     { property: 'og:description', content: description },
-    { property: 'og:image', content: 'https://www.slidecraft.work/ogp.jpg' },
+    { property: 'og:image', content: 'https://www.slidecraft.work/ogp-image.jpg' },
     {
       property: 'og:image:alt',
       content: 'SlideCraft - セキュリティとプライバシー',

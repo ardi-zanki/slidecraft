@@ -40,7 +40,7 @@ export function meta(): Route.MetaDescriptors {
     { property: 'og:url', content: url },
     { property: 'og:title', content: title },
     { property: 'og:description', content: description },
-    { property: 'og:image', content: `${url}/ogp.jpg` },
+    { property: 'og:image', content: `${url}/ogp-image.jpg` },
     { property: 'og:image:width', content: '1200' },
     { property: 'og:image:height', content: '630' },
     {
@@ -56,7 +56,7 @@ export function meta(): Route.MetaDescriptors {
     { name: 'twitter:creator', content: '@techtalkjp' },
     { name: 'twitter:title', content: title },
     { name: 'twitter:description', content: description },
-    { name: 'twitter:image', content: `${url}/ogp.jpg` },
+    { name: 'twitter:image', content: `${url}/ogp-image.jpg` },
     {
       name: 'twitter:image:alt',
       content: 'SlideCraft - 3枚だけ直したいのに全体が変わる問題を解決',

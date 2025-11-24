@@ -82,7 +82,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 'AI生成スライドを1枚単位で修正できるWebアプリケーション。Notebook LMやNano Banana Proで生成したスライドのピンポイント修正が可能。',
               url: 'https://www.slidecraft.work',
               logo: 'https://www.slidecraft.work/logo.svg',
-              image: 'https://www.slidecraft.work/ogp.jpg',
+              image: 'https://www.slidecraft.work/ogp-image.jpg',
               author: {
                 '@type': 'Organization',
                 name: 'TechTalk Inc.',
