@@ -104,7 +104,7 @@ function SlideThumbnail({
 
 export function Sidebar({ projectId, slides, selectedIndex }: SidebarProps) {
   return (
-    <div className="flex h-full flex-col border-r border-slate-200 bg-slate-100">
+    <div className="flex h-full flex-col bg-slate-100">
       <div className="flex h-8 items-center border-b border-slate-200 bg-white px-3">
         <h2 className="text-xs font-bold tracking-wider text-slate-700 uppercase">
           スライド一覧 ({slides.length})
