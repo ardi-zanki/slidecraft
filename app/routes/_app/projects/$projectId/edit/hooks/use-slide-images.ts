@@ -94,7 +94,9 @@ export function useSlideImages(projectId: string, slide: Slide) {
 
   // スライドが変わったら画像状態をリセットして再読み込み
   useEffect(() => {
-    if (prevSlideIdRef.current !== slide.id) {
+    const isSlideChanged = prevSlideIdRef.current !== slide.id
+
+    if (isSlideChanged) {
       // 既存のObject URLをクリーンアップ
       const { originalImage: prevOriginal, candidateImages: prevCandidates } =
         currentUrlsRef.current
@@ -113,13 +115,18 @@ export function useSlideImages(projectId: string, slide: Slide) {
 
       // 現在のスライドIDを記憶
       prevSlideIdRef.current = slide.id
-
-      // 候補がある場合はオリジナル画像をプリロード
-      if (slide.generatedCandidates.length > 0) {
-        preloadOriginalImage()
-      }
     }
-  }, [slide.id, slide.generatedCandidates.length, preloadOriginalImage])
+
+    // 候補がある場合はオリジナル画像をプリロード（初回マウント時も含む）
+    if (slide.generatedCandidates.length > 0 && !originalImage) {
+      preloadOriginalImage()
+    }
+  }, [
+    slide.id,
+    slide.generatedCandidates.length,
+    originalImage,
+    preloadOriginalImage,
+  ])
 
   return {
     originalImage,

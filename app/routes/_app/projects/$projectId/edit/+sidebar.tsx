@@ -26,14 +26,14 @@ function SlideThumbnail({
   // 画像データをロードしてdata URLに変換
   useEffect(() => {
     let mounted = true
-    let objectUrl: string | null = null
+    let currentUrl: string | null = null
 
     const loadImage = async () => {
       try {
         const blob = await loadCurrentSlideImage(projectId, slide)
         if (mounted) {
           const url = URL.createObjectURL(blob)
-          objectUrl = url
+          currentUrl = url
           setImageSrc(url)
         }
       } catch (error) {
@@ -41,12 +41,15 @@ function SlideThumbnail({
       }
     }
 
+    // 前の画像URLをクリア
+    setImageSrc('')
+
     loadImage()
 
     return () => {
       mounted = false
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl)
+      if (currentUrl) {
+        URL.revokeObjectURL(currentUrl)
       }
     }
   }, [projectId, slide])
