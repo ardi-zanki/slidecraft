@@ -15,6 +15,12 @@ import { GitHubIcon } from '~/components/icons/github-icon'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Card } from '~/components/ui/card'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogTrigger,
+} from '~/components/ui/dialog'
 import { loadProjects } from '~/lib/projects-repository.client'
 import type { Route } from './+types/_index'
 
@@ -61,52 +67,6 @@ export function meta(): Route.MetaDescriptors {
 export async function clientLoader() {
   const projects = await loadProjects()
   return { hasProjects: projects.length > 0 }
-}
-
-function SlideMockup({ type = 'before' }: { type?: 'before' | 'after' }) {
-  return (
-    <div className="group relative flex aspect-video flex-col justify-between overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition-all hover:shadow-md">
-      <div className="absolute top-2 right-2">
-        {type === 'before' ? (
-          <span className="rounded bg-slate-100 px-2 py-1 text-[10px] text-slate-500">
-            Original
-          </span>
-        ) : (
-          <span className="rounded border border-emerald-100 bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-600">
-            Fixed
-          </span>
-        )}
-      </div>
-
-      {/* Mock Content */}
-      <div
-        className={`flex h-full flex-col ${type === 'before' ? 'bg-slate-800' : 'bg-white'} rounded-sm p-4 transition-colors`}
-      >
-        <div
-          className={`mb-4 h-4 w-3/4 rounded ${type === 'before' ? 'bg-slate-600' : 'bg-slate-800'}`}
-        />
-        <div className="mb-2 flex gap-2">
-          <div
-            className={`h-2 w-1/2 rounded ${type === 'before' ? 'bg-slate-600' : 'bg-slate-200'}`}
-          />
-          <div
-            className={`h-2 w-1/2 rounded ${type === 'before' ? 'bg-slate-600' : 'bg-slate-200'}`}
-          />
-        </div>
-        <div
-          className={`mt-auto h-16 rounded opacity-50 ${type === 'before' ? 'bg-slate-600' : 'bg-blue-50'}`}
-        />
-      </div>
-
-      {type === 'before' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-slate-900/10 opacity-0 backdrop-blur-[1px] transition-opacity group-hover:opacity-100">
-          <span className="rounded bg-white px-3 py-1 text-xs text-slate-700 shadow">
-            背景色が濃すぎる...
-          </span>
-        </div>
-      )}
-    </div>
-  )
 }
 
 export default function Index({ loaderData }: Route.ComponentProps) {
@@ -206,8 +166,8 @@ export default function Index({ loaderData }: Route.ComponentProps) {
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-20 pb-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid items-center gap-12 lg:grid-cols-12">
-            <div className="space-y-8 lg:col-span-6">
+          <div className="grid items-start gap-12 lg:grid-cols-12">
+            <div className="space-y-8 lg:col-span-5">
               <div className="flex flex-wrap gap-2">
                 <Badge className="bg-blue-50 text-blue-600">
                   Professional Beta
@@ -227,11 +187,10 @@ export default function Index({ loaderData }: Route.ComponentProps) {
                 AI生成スライド、
                 <br />
                 <span className="text-slate-500">3枚だけ直したい</span>
-                のに
                 <br />
-                全体が変わってしまう
+                のに全体が変わって
                 <br />
-                問題を解決。
+                しまう問題を解決。
               </h1>
               <p className="max-w-lg text-lg leading-relaxed text-slate-500">
                 気になるスライドだけを修正。他は守る。1分で完了。
@@ -252,51 +211,44 @@ export default function Index({ loaderData }: Route.ComponentProps) {
             </div>
 
             {/* Hero Visual */}
-            <div className="relative lg:col-span-6">
-              <div className="relative z-10 rounded-xl border border-slate-200 bg-slate-50 p-2 shadow-xl">
-                {/* Browser Toolbar Mock */}
-                <div className="mb-4 flex h-8 items-center gap-2 border-b border-slate-200 px-4">
-                  <div className="h-3 w-3 rounded-full bg-slate-200" />
-                  <div className="h-3 w-3 rounded-full bg-slate-200" />
-                  <div className="flex-1 text-center font-mono text-[10px] text-slate-400">
-                    project_alpha_final.pdf
-                  </div>
-                </div>
-
-                {/* Main Grid */}
-                <div className="grid grid-cols-2 gap-4 p-4">
-                  {/* Left: Problem Slide */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-xs font-medium text-slate-500">
-                      <span>Original (Slide 5)</span>
+            <div className="relative lg:col-span-7">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button
+                    type="button"
+                    className="group relative z-10 overflow-hidden rounded-xl bg-white transition-opacity hover:opacity-90"
+                  >
+                    <img
+                      src="/slidecraft_image.png"
+                      alt="SlideCraft アプリケーション画面 - スライド編集インターフェース"
+                      className="h-auto w-full"
+                      width={1280}
+                      height={800}
+                    />
+                    {/* Fade out gradient at bottom */}
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-white to-transparent" />
+                    {/* Click hint */}
+                    <div className="absolute inset-0 flex items-center justify-center bg-slate-900/0 opacity-0 transition-all group-hover:bg-slate-900/10 group-hover:opacity-100">
+                      <div className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-lg">
+                        クリックで拡大
+                      </div>
                     </div>
-                    <SlideMockup type="before" />
-                    <div className="rounded border border-slate-200 bg-white p-3 text-xs text-slate-500">
-                      <span className="mr-2 font-bold text-amber-500">
-                        課題:
-                      </span>
-                      背景が濃すぎて印刷時に文字が潰れてしまう...
-                    </div>
-                  </div>
-
-                  {/* Arrow Center */}
-                  <div className="absolute top-1/2 left-1/2 z-20 -translate-x-1/2 -translate-y-1/2 rounded-full border border-slate-200 bg-white p-2 shadow-lg">
-                    <ArrowRight className="h-5 w-5 text-blue-500" />
-                  </div>
-
-                  {/* Right: Solution Slide */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-xs font-medium text-slate-500">
-                      <span>Generated Candidate</span>
-                    </div>
-                    <SlideMockup type="after" />
-                    <div className="rounded border border-blue-100 bg-blue-50 p-3 text-xs text-blue-600">
-                      <span className="mr-2 font-bold">解決:</span>
-                      「背景を白ベースに、文字色を濃いグレーに」
-                    </div>
-                  </div>
-                </div>
-              </div>
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="max-w-[90vw]! p-0 sm:max-w-[90vw]!">
+                  <DialogClose asChild>
+                    <button type="button" className="cursor-pointer">
+                      <img
+                        src="/slidecraft_image.png"
+                        alt="SlideCraft アプリケーション画面 - スライド編集インターフェース"
+                        className="h-auto w-full rounded-lg"
+                        width={1280}
+                        height={800}
+                      />
+                    </button>
+                  </DialogClose>
+                </DialogContent>
+              </Dialog>
 
               {/* Decoration Background */}
               <div className="absolute -top-10 -right-10 -z-10 h-64 w-64 rounded-full bg-slate-100 opacity-50 blur-3xl" />

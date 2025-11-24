@@ -17,8 +17,6 @@
   },
   "dependencies": {
     "@google/genai": "1.30.0",
-    "@radix-ui/react-separator": "1.1.8",
-    "@radix-ui/react-tooltip": "1.2.8",
     "@react-router/node": "7.9.6",
     "@react-router/serve": "7.9.6",
     "class-variance-authority": "0.7.1",

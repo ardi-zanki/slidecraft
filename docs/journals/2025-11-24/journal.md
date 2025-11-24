@@ -788,6 +788,7 @@ export async function clientLoader() {
 - 新規ユーザー (`hasProjects: false`): 「無料で始める」で `/projects/new` へ
 
 3箇所のボタンを更新：
+
 - ナビゲーションヘッダー
 - ヒーローセクション
 - CTAセクション
@@ -1110,3 +1111,269 @@ export const handle = {
 2. **段階的な確認:** UI改善は実際に見ながら調整することが多い。「いいかんじになった！でもコードがややこしそう」のように、まず動作を確認してから改善する流れが効率的。
 
 3. **コードレビューの依頼:** 「全体みなおしてどうやったら綺麗にかけるだろう」と明示的に依頼することで、実装後のリファクタリングが促進される。
+
+---
+
+## Session 6: LPヒーローセクションへの実スクリーンショット追加とモーダル拡大表示機能
+
+### ユーザー指示
+
+**「public/slidecraft_image.png という、アプリ利用中のスクリーンショットをつくったよ。これを LP のヒーローセクションにいれたいんだけどどう思う？画像も確認してどうしたらいいか考えよう。サイズは 1280x800 です」**
+
+ユーザーが実際のアプリスクリーンショット（1280x800px）を作成し、LPのヒーローセクションへの配置を検討。画像には「円グラフに変えて」という自然言語指示と、その修正候補が表示されており、アプリの価値提案が一目で分かる内容。
+
+### ユーザー意図（推察）
+
+実際のアプリ画面を見せることで、抽象的なモックアップよりも具体的な使用イメージを訪問者に伝えたい。特に「自然言語で指示→候補生成→選択」というワークフローが視覚的に理解できることを重視。
+
+### 実施内容
+
+#### 1. スクリーンショット配置の基本実装
+
+**変更ファイル:** `app/routes/_index.tsx`
+
+- 抽象的な Before/After モックアップを削除（`SlideMockup` コンポーネント47行削除）
+- 実スクリーンショット（`/slidecraft_image.png`）を配置
+- `shadow-2xl` で高級感を演出
+- `rounded-xl` と `border border-slate-200` で境界を明確化
+
+**ユーザーフィードバック:** 「なんか枠がめっちゃくろい」
+
+#### 2. シャドウの調整
+
+**問題:** `shadow-2xl` の影が濃すぎて黒い枠のように見える
+
+**解決:**
+
+- `shadow-2xl` → `shadow-lg` に変更
+
+**ユーザーフィードバック:** 「いや、画像の自体の問題なのかなあ。黒い」
+
+#### 3. 画像の黒枠問題の特定と対処
+
+**問題:** スクリーンショット自体に濃いグレーのフレームが含まれていた
+
+**提案した解決策:**
+
+1. 画像を再作成（推奨）
+2. CSS で内側をトリミング（`scale-105` で拡大して枠を切り取り）
+3. 画像編集ツールでクロップ
+
+**ユーザー選択:** CSS でトリミング → その後画像ファイル差し替え
+
+**実装:**
+
+- `scale-105` を一時的に追加
+- ユーザーが画像差し替え後、`scale-105` を削除
+
+#### 4. グリッド比率の調整
+
+**ユーザーフィードバック:** 「ok ちょっと画像が小さくてめっちゃみづらいな。どうしたらいい？」
+
+**提案:** グリッド比率を 6:6 から 5:7 に変更（画像側を大きく）
+
+**実装:**
+
+```tsx
+// Before: 50:50
+<div className="space-y-8 lg:col-span-6">  // テキスト
+<div className="relative lg:col-span-6">   // 画像
+
+// After: 42:58
+<div className="space-y-8 lg:col-span-5">  // テキスト
+<div className="relative lg:col-span-7">   // 画像
+```
+
+**結果:** 画像が約40%拡大
+
+#### 5. コピーの改行調整
+
+**ユーザーフィードバック:** スクリーンショット提示「だいぶいいんだけど、コピー部分がガタガタになっちゃう」
+
+**問題:** テキストエリアが狭くなり、見出しの改行位置が不自然に
+
+**解決:** 改行位置を調整
+
+```tsx
+// Before
+AI生成スライド、
+3枚だけ直したいのに    // 「のに」が孤立
+全体が変わってしまう    // 「しまう」が孤立
+問題を解決。
+
+// After
+AI生成スライド、
+3枚だけ直したい
+のに全体が変わって      // まとまりが良い
+しまう問題を解決。      // まとまりが良い
+```
+
+#### 6. 画像下端のフェードアウト効果
+
+**ユーザー要望:** 「画像の下端の方を、白くフェードアウトする感じにできない？」
+
+**実装:**
+
+```tsx
+<div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-white to-transparent" />
+```
+
+**ユーザーフィードバック:** 「シャドウあるからへんだなあ。むずいねこれ」
+
+**調整:**
+
+- `shadow-lg` を削除（影とフェードアウトの競合を解消）
+- `border border-slate-200` を削除（ユーザー要望）
+- `bg-gradient-to-t` → `bg-linear-to-t`（TailwindCSS v4 の正しい構文）
+
+**ユーザーフィードバック:** 「いいね」
+
+#### 7. 画像位置の調整
+
+**ユーザー要望:** 「もうちょっと画像だけを上に出したいな」
+
+**実装:** グリッドコンテナの配置を変更
+
+```tsx
+// Before: 中央揃え
+<div className="grid items-center gap-12 lg:grid-cols-12">
+
+// After: 上揃え
+<div className="grid items-start gap-12 lg:grid-cols-12">
+```
+
+**ユーザーフィードバック:** 「いいね」
+
+#### 8. モーダル拡大表示機能の実装
+
+**ユーザー要望:** 「あと文字がやっぱ小さいな。クリックして大きく表示とかできるといいのかな？」
+
+**実装:**
+
+1. **shadcn/ui の Dialog コンポーネントを使用**
+
+```tsx
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogTrigger,
+} from '~/components/ui/dialog'
+```
+
+2. **ホバーエフェクト付きのトリガー**
+
+```tsx
+<DialogTrigger asChild>
+  <button type="button" className="group ...">
+    <img src="/slidecraft_image.png" ... />
+    {/* Fade out gradient */}
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-white to-transparent" />
+    {/* Click hint on hover */}
+    <div className="absolute inset-0 flex items-center justify-center bg-slate-900/0 opacity-0 transition-all group-hover:bg-slate-900/10 group-hover:opacity-100">
+      <div className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-lg">
+        クリックで拡大
+      </div>
+    </div>
+  </button>
+</DialogTrigger>
+```
+
+**ユーザーフィードバック:** スクリーンショット提示「モーダルでるけどモーダルが小さすぎるよ」
+
+#### 9. モーダルサイズの調整（試行錯誤）
+
+**試行1:** `max-w-6xl` のまま
+→ 小さすぎる
+
+**試行2:** `max-w-[95vw]` に変更
+→ 「かわらないなあ」
+
+**問題特定:** `dialog.tsx` のデフォルトスタイル `sm:max-w-lg` が優先されていた
+
+**試行3:** `!important` を前置
+
+```tsx
+<DialogContent className="!max-w-[90vw] p-0 sm:!max-w-[90vw]">
+```
+
+→ 「よくなった」
+
+**試行4:** TailwindCSS v4 の正しい構文に修正
+
+```tsx
+<DialogContent className="max-w-[90vw]! p-0 sm:max-w-[90vw]!">
+```
+
+- `p-0` でパディング削除
+- 画像に `rounded-lg` を追加
+
+#### 10. モーダルクリックで閉じる機能
+
+**ユーザー要望:** 「でもモーダルクリックで閉じてほしいよ」
+
+**実装:** 画像を `DialogClose` でラップ
+
+```tsx
+<DialogContent className="max-w-[90vw]! p-0 sm:max-w-[90vw]!">
+  <DialogClose asChild>
+    <button type="button" className="cursor-pointer">
+      <img src="/slidecraft_image.png" ... />
+    </button>
+  </DialogClose>
+</DialogContent>
+```
+
+**ユーザーフィードバック:** 「できた。ありがとう」
+
+### 達成した成果
+
+#### UI/UX 改善
+
+1. **実スクリーンショットの効果的な配置**
+   - 抽象的なモックアップから実際のアプリ画面へ
+   - 5:7 のグリッド比率で画像を大きく表示
+   - 下端の白フェードアウトで自然な見切れ
+
+2. **モーダル拡大表示**
+   - 画面幅の 90% を使用した大画面表示
+   - ホバー時に「クリックで拡大」ヒント表示
+   - 画像クリックまたは背景クリックで閉じる
+   - ESC キーでも閉じる（Dialog の標準機能）
+
+3. **視覚的な洗練**
+   - 影や枠線を削除してシンプルに
+   - 下端フェードアウトで印象的に
+   - 上揃えレイアウトで画像を強調
+
+#### コード品質
+
+- 不要なコンポーネント削除（`SlideMockup` 47行削減）
+- TailwindCSS v4 の正しい構文使用（`bg-linear-to-t`, `max-w-[90vw]!`）
+- アクセシビリティ対応（Dialog コンポーネントの標準機能）
+- すべての変更が `pnpm validate` をパス
+
+### 技術的な学び
+
+1. **TailwindCSS v4 の `!important` 構文**
+   - 前置: `!max-w-[90vw]` → 後置: `max-w-[90vw]!`
+
+2. **shadcn/ui Dialog のデフォルトスタイル**
+   - `sm:max-w-lg` がデフォルト設定されている
+   - レスポンシブブレークポイントごとに上書きが必要
+
+3. **DialogClose の活用**
+   - `asChild` パターンでカスタムトリガーを実装
+   - 画像全体をクリッカブルに
+
+4. **グラデーション構文の変更**
+   - v3: `bg-gradient-to-t`
+   - v4: `bg-linear-to-t`
+
+### 今後の改善示唆（依頼の仕方）
+
+1. **スクリーンショット提示:** 問題を言葉で説明するより、スクリーンショットを見せることで即座に問題が共有できる（「コピー部分がガタガタ」など）。
+
+2. **段階的なフィードバック:** 「だいぶいいんだけど、○○が」という形で、部分的な改善を積み重ねることで最終的に満足のいく結果に。
+
+3. **即座の方向転換:** CSS トリミング提案後、すぐに「画像ファイル差し替えたから CSS もどして」と柔軟に方向転換することで、無駄な実装を避けられる。
