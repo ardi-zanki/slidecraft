@@ -32,7 +32,7 @@ generationProgressステートは特に重要です。複数枚の画像を生�
 
 clientActionによる実装では、mutation処理をルートファイルからエクスポートされるaction関数に集約します。React Routerは自動的にこの関数を認識し、フォーム送信やプログラム的な呼び出しに応答します。
 
-候補選択処理をclientActionで実装すると、約85行のコードになります。action関数内でスライドの取得、更新、保存を行い、成功時とエラー時で異なる戻り値を返します。コンポーネント側では、useFetcherフックを使用してactionを呼び出します。fetcher.Formコンポーネントにhidden inputフィールドを含め、_action、slideId、generatedIdを送信します。fetcher.stateでローディング状態を監視し、fetcher.dataでactionの結果にアクセスします。
+候補選択処理をclientActionで実装すると、約85行のコードになります。action関数内でスライドの取得、更新、保存を行い、成功時とエラー時で異なる戻り値を返します。コンポーネント側では、useFetcherフックを使用してactionを呼び出します。fetcher.Formコンポーネントにhidden inputフィールドを含め、\_action、slideId、generatedIdを送信します。fetcher.stateでローディング状態を監視し、fetcher.dataでactionの結果にアクセスします。
 
 コード量は41行から85行に増加しますが、責任の分離が明確になります。action関数はビジネスロジックのみを担当し、コンポーネントはUI表示とフォーム送信のみを担当します。この分離により、action関数を独立してユニットテストできます。従来のカスタムフックのテストでは、React Testing LibraryのrenderHookを使用し、複数の依存をすべてモックする必要がありました。一方、action関数は純粋な非同期関数なので、FormDataを作成して関数を呼び出し、戻り値を検証するだけでテストできます。
 
@@ -74,7 +74,7 @@ generationProgressは、前述の通り、clientActionでは実装できませ�
 
 clientAction実装では、action関数とコンポーネントで責任が明確に分離されます。action関数はビジネスロジック(データの取得、更新、保存、外部API呼び出し)を担当し、コンポーネントはUI表示(フォームのレンダリング、ローディング状態の表示、エラーメッセージの表示)を担当します。この分離により、ビジネスロジックの変更とUI変更を独立して行えます。
 
-action関数はルートファイルの+actions.tsxに集約されます。このファイルを開けば、すべてのmutation処理が一覧できます。従来の実装では、mutation処理がカスタムフック内に隠蔽されており、コンポーネントからは見えませんでした。+actions.tsxでは、_actionフィールドによる分岐により、どのような操作が可能かが明確に分かります。
+action関数はルートファイルの+actions.tsxに集約されます。このファイルを開けば、すべてのmutation処理が一覧できます。従来の実装では、mutation処理がカスタムフック内に隠蔽されており、コンポーネントからは見えませんでした。+actions.tsxでは、\_actionフィールドによる分岐により、どのような操作が可能かが明確に分かります。
 
 テスタビリティも大幅に向上します。従来のカスタムフックをテストするには、React Testing LibraryのrenderHookを使用し、10個の依存(projectId、slide、allSlides、onSlideUpdate、prompt、generationCount、loadCandidateImage、recordGenerationCost、resetGenerationCost)をすべてモックする必要がありました。テストコードは複雑になり、状態の検証も困難でした。
 
@@ -112,7 +112,7 @@ clientActionでは、action関数が値を返すと、React Routerが自動的�
 
 現状の実装で新しいmutation処理を追加する場合、以下のステップが必要です。まず、useSlideGenerationフックにハンドラ関数を追加します。次に、必要に応じて新しいステート(useState)を追加します。エラーハンドリングを追加します。コンポーネントでフックの戻り値からハンドラを受け取ります。最後に、UIからハンドラを呼び出します。合計5ステップです。
 
-clientAction実装では、2ステップで完了します。まず、+actions.tsxのclientAction関数に新しいケースを追加します。_actionフィールドの値をチェックし、新しいaction関数を呼び出すif文を追加します。次に、コンポーネントでfetcher.Formを作成し、hidden inputに_actionの値を設定します。これだけです。
+clientAction実装では、2ステップで完了します。まず、+actions.tsxのclientAction関数に新しいケースを追加します。\_actionフィールドの値をチェックし、新しいaction関数を呼び出すif文を追加します。次に、コンポーネントでfetcher.Formを作成し、hidden inputに\_actionの値を設定します。これだけです。
 
 ステート管理、エラーハンドリング、型定義はすべて既存のパターンを再利用できます。fetcher.stateでローディング状態を監視し、fetcher.data?.errorでエラーを表示します。新しいaction関数の戻り値は自動で型推論されます。
 
@@ -132,7 +132,7 @@ clientAction実装では、2ステップで完了します。まず、+actions.t
 
 ハイブリッドアプローチの実装工数は約8時間と見積もられます。内訳は以下の通りです。
 
-アーキテクチャ設計に1時間を割きます。+actions.tsxの構造を決定し、既存のuseSlideGenerationフックとの責任分離を明確化します。_actionフィールドの命名規則やエラーレスポンスの形式を統一します。
+アーキテクチャ設計に1時間を割きます。+actions.tsxの構造を決定し、既存のuseSlideGenerationフックとの責任分離を明確化します。\_actionフィールドの命名規則やエラーレスポンスの形式を統一します。
 
 候補選択処理の移行に3時間を割きます。selectCandidateAction関数を実装し、candidate-images-grid.tsxでuseFetcherを使用するように変更します。エラー表示UIを統一し、既存の機能が正しく動作することを確認します。この段階でclientActionの実装パターンが確立されます。
 

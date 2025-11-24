@@ -61,7 +61,7 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
 
 actionから値を返すと、その値はコンポーネント側でuseActionDataフックを通じてアクセスできます。リダイレクトが必要な場合は、redirect関数を使用します。redirect関数を呼び出すと、actionの実行が中断され、指定したURLへの遷移が発生します。
 
-actionは複数の処理を扱うこともできます。この場合、FormDataに含まれる特別なフィールド（慣習的に_actionという名前）を使って処理を分岐させます。
+actionは複数の処理を扱うこともできます。この場合、FormDataに含まれる特別なフィールド（慣習的に\_actionという名前）を使って処理を分岐させます。
 
 ```typescript
 import { redirect } from 'react-router'
@@ -414,7 +414,7 @@ export default function Editor({ loaderData }: Route.ComponentProps) {
 
 ## 複数のactionを持つルートの扱い方
 
-一つのルートで複数の異なるmutation処理を扱う場合、_actionフィールドで処理を分岐させます。
+一つのルートで複数の異なるmutation処理を扱う場合、\_actionフィールドで処理を分岐させます。
 
 ```typescript
 export async function action({ request }: Route.ActionArgs) {
@@ -456,7 +456,7 @@ async function handlePublish(formData: FormData) {
 }
 ```
 
-各処理を独立した関数に分離することで、テストが容易になり、コードの見通しも良くなります。_actionフィールドは単なる慣習ですが、広く採用されているパターンです。
+各処理を独立した関数に分離することで、テストが容易になり、コードの見通しも良くなります。\_actionフィールドは単なる慣習ですが、広く採用されているパターンです。
 
 複数の操作を同時に実行する必要がある場合は、複数のfetcherを使用します。
 
@@ -592,7 +592,7 @@ export default function Upload() {
 
 実装時は、型安全性を確保するため必ずtypeof actionで戻り値の型推論を活用します。エラーハンドリングは必ずtry-catchとエラー境界を実装し、ユーザー体験を損なわないようにします。ローディング状態は常に表示し、ユーザーが操作の進行状況を把握できるようにします。楽観的UIをuseOptimisticで実装することで、ネットワーク遅延を隠せます。バリデーションはクライアントとサーバー両側で実装し、セキュリティとUXの両立を図ります。大容量ファイルを扱う場合は、メモリ管理に注意しストリーミング処理を検討します。
 
-SlideCraft向けには、すべてのmutationを集約したactions.tsxファイルを作成し、_actionフィールドで処理を分岐させるパターンを推奨します。
+SlideCraft向けには、すべてのmutationを集約したactions.tsxファイルを作成し、\_actionフィールドで処理を分岐させるパターンを推奨します。
 
 ```typescript
 // +actions.tsx - すべてのmutationを集約

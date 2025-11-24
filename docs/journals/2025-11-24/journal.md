@@ -678,7 +678,7 @@ CLAUDE.md に記載された「質実剛健な日本語散文、箇条書き・�
 **実装内容:**
 
 1. **+actions.tsx の作成:**
-   - `clientAction` 関数を実装（_action フィールドで分岐）
+   - `clientAction` 関数を実装（\_action フィールドで分岐）
    - `selectCandidateAction`: 候補画像選択処理
    - `resetToOriginalAction`: リセット処理
    - 統一されたエラーハンドリング（`{ error: string }` 形式）

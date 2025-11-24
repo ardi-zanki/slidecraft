@@ -1,6 +1,6 @@
-import type { Route } from './+types/index'
 import { loadSlides, saveSlides } from '~/lib/slides-repository.client'
 import type { Slide } from '~/lib/types'
+import type { Route } from './+types/index'
 
 /**
  * Editor mutation処理のclientAction
