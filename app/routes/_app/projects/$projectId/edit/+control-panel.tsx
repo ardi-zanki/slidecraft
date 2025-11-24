@@ -86,7 +86,7 @@ export function ControlPanel({
         onSaved={handleGenerate}
       />
 
-      <div className="flex h-full flex-col border-l bg-white">
+      <div className="flex h-full flex-col bg-white">
         <div className="flex h-8 items-center border-b px-3">
           <h2 className="text-xs font-semibold text-slate-700">スライド修正</h2>
         </div>
