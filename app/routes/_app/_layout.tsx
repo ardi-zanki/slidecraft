@@ -1,30 +1,14 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router'
 import { AppSidebar } from '~/components/layout/app-sidebar'
 import { Main } from '~/components/layout/main'
 import { Separator } from '~/components/ui/separator'
-import {
-  SidebarProvider,
-  SidebarTrigger,
-  useSidebar,
-} from '~/components/ui/sidebar'
+import { SidebarProvider, SidebarTrigger } from '~/components/ui/sidebar'
 import { useBreadcrumbs } from '~/hooks/use-breadcrumbs'
 import { cn } from '~/lib/utils'
 
-function AppLayoutContent() {
+function AppLayoutContent({ isEditorPage }: { isEditorPage: boolean }) {
   const { Breadcrumbs } = useBreadcrumbs()
-  const location = useLocation()
-  const { setOpen } = useSidebar()
-
-  // エディタページかどうかを判定
-  const isEditorPage = location.pathname.includes('/edit')
-
-  // エディタページに遷移したときにサイドバーを閉じる
-  useEffect(() => {
-    if (isEditorPage) {
-      setOpen(false)
-    }
-  }, [isEditorPage, setOpen])
 
   return (
     <>
@@ -64,9 +48,24 @@ function AppLayoutContent() {
 }
 
 export default function AppLayout() {
+  const location = useLocation()
+  const isEditorPage = location.pathname.includes('/edit')
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+
+  /**
+   * ナビゲーション時のサイドバー状態管理
+   * External system: React Router (location.pathname)
+   *
+   * エディタページではサイドバーを自動的に縮小し、
+   * 通常ページでは展開することでワークスペースを最適化
+   */
+  useEffect(() => {
+    setSidebarOpen(!isEditorPage)
+  }, [isEditorPage])
+
   return (
-    <SidebarProvider>
-      <AppLayoutContent />
+    <SidebarProvider open={sidebarOpen} onOpenChange={setSidebarOpen}>
+      <AppLayoutContent isEditorPage={isEditorPage} />
     </SidebarProvider>
   )
 }
