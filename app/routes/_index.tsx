@@ -15,6 +15,7 @@ import { GitHubIcon } from '~/components/icons/github-icon'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Card } from '~/components/ui/card'
+import { loadProjects } from '~/lib/projects-repository.client'
 import type { Route } from './+types/_index'
 
 export function meta(): Route.MetaDescriptors {
@@ -55,6 +56,11 @@ export function meta(): Route.MetaDescriptors {
       content: 'SlideCraft - 3枚だけ直したいのに全体が変わる問題を解決',
     },
   ]
+}
+
+export async function clientLoader() {
+  const projects = await loadProjects()
+  return { hasProjects: projects.length > 0 }
 }
 
 function SlideMockup({ type = 'before' }: { type?: 'before' | 'after' }) {
@@ -103,7 +109,11 @@ function SlideMockup({ type = 'before' }: { type?: 'before' | 'after' }) {
   )
 }
 
-export default function Index() {
+export default function Index({ loaderData }: Route.ComponentProps) {
+  const { hasProjects } = loaderData
+  const ctaLink = hasProjects ? '/projects' : '/projects/new'
+  const ctaText = hasProjects ? 'プロジェクトを見る' : '無料で始める'
+  const ctaTextLong = hasProjects ? 'プロジェクトを見る' : '今すぐ無料で始める'
   /**
    * LP専用のスムーススクロール設定
    * External system: DOM (html要素のスタイル変更)
@@ -186,7 +196,7 @@ export default function Index() {
                 <GitHubIcon className="h-5 w-5" />
               </a>
               <Button asChild size="sm">
-                <Link to="/projects/new">無料で始める</Link>
+                <Link to={ctaLink}>{ctaText}</Link>
               </Button>
             </div>
           </div>
@@ -230,8 +240,8 @@ export default function Index() {
               </p>
               <div className="flex flex-col gap-4 sm:flex-row">
                 <Button asChild className="group">
-                  <Link to="/projects/new">
-                    今すぐ無料で始める
+                  <Link to={ctaLink}>
+                    {ctaTextLong}
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Link>
                 </Button>
@@ -592,7 +602,8 @@ export default function Index() {
                 Estimated Cost
               </div>
               <div className="flex items-baseline justify-center gap-1">
-                <span className="text-5xl font-bold text-slate-800">~20</span>
+                <span className="text-sm text-slate-500">約</span>
+                <span className="text-5xl font-bold text-slate-800">20</span>
                 <span className="text-xl font-bold text-slate-500">円</span>
                 <span className="ml-2 text-sm text-slate-400">
                   / 1スライド修正
@@ -619,7 +630,9 @@ export default function Index() {
 
           <div className="mt-8 text-xs text-slate-400">
             ※ Gemini 3 Pro Image (Nano Banana Pro)
-            モデルを使用した場合の概算です。為替レートやGoogleの価格改定により変動します。
+            モデルを使用した場合の概算です。
+            <br />
+            為替レートやGoogleの価格改定により変動する場合があります。
           </div>
         </div>
       </section>
@@ -707,7 +720,9 @@ export default function Index() {
             asChild
             className="bg-blue-500 px-8 py-6 text-lg shadow-lg shadow-blue-900/50 hover:bg-blue-600"
           >
-            <Link to="/projects/new">無料で試してみる</Link>
+            <Link to={ctaLink}>
+              {hasProjects ? 'プロジェクトを見る' : '無料で試してみる'}
+            </Link>
           </Button>
           <p className="mt-6 text-sm text-slate-500">
             クレジットカード登録不要（SlideCraft側） / 登録なしで即試用可能
