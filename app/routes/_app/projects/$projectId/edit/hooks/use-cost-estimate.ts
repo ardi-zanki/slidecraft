@@ -23,7 +23,15 @@ export function useCostEstimate(prompt: string, generationCount: number) {
    * 24時間キャッシュされるため、頻繁なリクエストは発生しない
    */
   useEffect(() => {
-    getExchangeRate().then(setExchangeRate)
+    let mounted = true
+    getExchangeRate().then((rate) => {
+      if (mounted) {
+        setExchangeRate(rate)
+      }
+    })
+    return () => {
+      mounted = false
+    }
   }, [])
 
   /**

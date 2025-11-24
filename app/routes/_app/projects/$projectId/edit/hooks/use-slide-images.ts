@@ -19,19 +19,18 @@ export function useSlideImages(projectId: string, slide: Slide) {
   // スライドID追跡用（変更検知）
   const prevSlideIdRef = useRef<string>(slide.id)
 
-  /**
-   * 既存の画像Object URLをクリーンアップする
-   * メモリリークを防ぐため、スライド切り替え時に実行
-   */
-  const cleanupImageUrls = useCallback(() => {
-    if (originalImage) {
-      URL.revokeObjectURL(originalImage)
-    }
-    candidateImages.forEach((url) => {
-      if (url) {
-        URL.revokeObjectURL(url)
-      }
-    })
+  // cleanup用に現在のURLを保持するref
+  const currentUrlsRef = useRef<{
+    originalImage: string | null
+    candidateImages: Map<string, string | null>
+  }>({
+    originalImage: null,
+    candidateImages: new Map(),
+  })
+
+  // state更新時にrefも更新
+  useEffect(() => {
+    currentUrlsRef.current = { originalImage, candidateImages }
   }, [originalImage, candidateImages])
 
   /**
@@ -97,7 +96,16 @@ export function useSlideImages(projectId: string, slide: Slide) {
   useEffect(() => {
     if (prevSlideIdRef.current !== slide.id) {
       // 既存のObject URLをクリーンアップ
-      cleanupImageUrls()
+      const { originalImage: prevOriginal, candidateImages: prevCandidates } =
+        currentUrlsRef.current
+      if (prevOriginal) {
+        URL.revokeObjectURL(prevOriginal)
+      }
+      prevCandidates.forEach((url) => {
+        if (url) {
+          URL.revokeObjectURL(url)
+        }
+      })
 
       // 状態をリセット
       setOriginalImage(null)
@@ -111,12 +119,7 @@ export function useSlideImages(projectId: string, slide: Slide) {
         preloadOriginalImage()
       }
     }
-  }, [
-    slide.id,
-    slide.generatedCandidates.length,
-    cleanupImageUrls,
-    preloadOriginalImage,
-  ])
+  }, [slide.id, slide.generatedCandidates.length, preloadOriginalImage])
 
   return {
     originalImage,
