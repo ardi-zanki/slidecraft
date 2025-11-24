@@ -1,7 +1,8 @@
-import { ArrowLeft, ExternalLink, Key, Lock } from 'lucide-react'
+import { ExternalLink, Key, Lock } from 'lucide-react'
 import { Link } from 'react-router'
 import { Button } from '~/components/ui/button'
 import type { Route } from './+types/api-key-setup'
+import { GuideHeader } from './_layout'
 
 export function meta(): Route.MetaDescriptors {
   const title = 'Google AI Studio APIキー取得ガイド | SlideCraft'
@@ -30,12 +31,7 @@ export default function ApiKeySetupGuide() {
       {/* Header */}
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
-          <Button asChild variant="ghost" size="sm" className="mb-4">
-            <Link to="/">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              ホームに戻る
-            </Link>
-          </Button>
+          <GuideHeader />
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
               <Key className="h-6 w-6" />

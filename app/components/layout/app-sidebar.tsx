@@ -1,5 +1,6 @@
-import { FileText, FolderOpen, Settings, Upload } from 'lucide-react'
-import { Link } from 'react-router'
+import { FolderOpen, Home, Key, Settings, Shield, Upload } from 'lucide-react'
+import { Link, useLocation } from 'react-router'
+import { GitHubIcon } from '~/components/icons/github-icon'
 import {
   Sidebar,
   SidebarContent,
@@ -43,6 +44,8 @@ const menuItems = [
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const location = useLocation()
+
   return (
     <Sidebar collapsible="icon" variant="sidebar" {...props}>
       <SidebarHeader>
@@ -50,8 +53,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link to="/projects">
-                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <FileText className="size-4" />
+                <div className="flex aspect-square size-8 items-center justify-center">
+                  <img src="/logo.svg" alt="SlideCraft" className="size-8" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">SlideCraft</span>
@@ -87,12 +90,39 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
+              <Link to="/">
+                <Home className="h-4 w-4" />
+                <span>ホーム</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <Link
+                to="/guides/api-key-setup"
+                state={{ from: location.pathname }}
+              >
+                <Key className="h-4 w-4" />
+                <span>APIキー設定ガイド</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <Link to="/guides/security" state={{ from: location.pathname }}>
+                <Shield className="h-4 w-4" />
+                <span>セキュリティガイド</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
               <a
                 href="https://github.com/techtalkjp/slidecraft"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <FileText />
+                <GitHubIcon className="h-4 w-4" />
                 <span>GitHub</span>
               </a>
             </SidebarMenuButton>

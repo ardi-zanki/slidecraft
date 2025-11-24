@@ -93,7 +93,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
-        <ScrollRestoration />
+        <ScrollRestoration
+          getKey={(location) => {
+            // パス全体をキーとして使用してスクロール位置を保持
+            return location.pathname
+          }}
+        />
         <Scripts />
       </body>
     </html>

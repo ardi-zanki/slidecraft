@@ -100,6 +100,38 @@ This convention applies to:
 
 Write design docs and specifications in natural Japanese prose focused on "why" and "what". Build logical narratives that flow: problem → reasoning → approach → implications. Explain technical terms within context. Minimize bullet points, tables, and emojis. Keep the tone professional (質実剛健).
 
+## Documentation and Workflow
+
+### Document Storage
+
+- Daily research and meeting notes: `docs/YYYY-MM-DD/`
+- File names: Use alphanumeric + Japanese for clarity (e.g., `docs/2025-01-24/useEffect-review.md`)
+
+### Work Journal (Claude Code)
+
+Record development sessions in `docs/journals/YYYY-MM-DD.md`.
+
+**When to record:**
+
+- Session end indicators ("thanks", "done for today", etc.)
+- After creating/updating 2+ documents
+- After completing technical investigations or design documents
+- On explicit user request
+- **Per task**: Append each new task instruction as received
+
+**Content structure:**
+
+- **User instruction**: Quote user's request verbatim, add 1-2 sentence context
+- **User intent (inferred)**: 2-3 sentences inferring user's goal in "wants to..." format
+- **Work done**: Prose for complex work, bullets for simple tasks
+- **Improvement suggestions**: At session end, note 2-3 ways user could have requested more efficiently (focus on request process, not AI reflection)
+
+**Update method**: Append to existing journal for same date
+
+### Decision Process
+
+For critical decisions and user-facing deliverables, human review is required before finalization.
+
 ## UI/UX Design Guidelines
 
 Follow the principles outlined in `docs/design-policy.md`. Prioritize **usability over visual aesthetics**. The core philosophy is that users should never feel blocked, always receive immediate feedback, and can easily recover from any state.
@@ -202,31 +234,3 @@ Before shipping a new feature, verify:
 - [ ] Icons use Lucide with consistent sizes
 - [ ] Spacing follows 8px system
 - [ ] Destructive actions have confirmation or undo
-
-## Docker Deployment
-
-Multi-stage Dockerfile builds:
-
-1. Development dependencies layer
-2. Production dependencies layer (--omit=dev)
-3. Build layer (runs build command)
-4. Final runtime layer with only production deps and built artifacts
-
-Note: The Dockerfile currently uses npm/package-lock.json but the project uses pnpm/pnpm-lock.yaml for local development.
-
-The container exposes the app on port 3000 when running the start command.
-
-## Reference Implementation Notes
-
-The `references/slidegenius/` directory contains a working slide editor with:
-
-- PDF upload and conversion to images
-- Per-slide image editing with AI generation via Gemini
-- Slide sidebar navigation
-- PDF export functionality
-
-Key patterns from the reference:
-
-- Slide data structure with original/current/generated image candidates
-- Integration with Google AI Studio environment for API key management
-- Local browser-based PDF processing (no server upload)
