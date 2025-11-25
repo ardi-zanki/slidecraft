@@ -314,15 +314,6 @@ export default function ApiKeySetupGuide() {
                   Cloudプロジェクトを検索・インポートできます。インポート後、そのプロジェクトにAPIキーを作成できます。
                 </p>
               </div>
-              <div className="rounded-lg border border-slate-200 p-4">
-                <h4 className="mb-2 font-bold text-slate-900">
-                  無料枠の残量を確認したい
-                </h4>
-                <p className="text-sm text-slate-600">
-                  Google Cloud
-                  Consoleの「請求」ダッシュボードから、現在の使用状況と残量を確認できます。
-                </p>
-              </div>
             </div>
           </section>
 
