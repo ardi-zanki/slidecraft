@@ -454,7 +454,7 @@ export default function Index({ loaderData }: Route.ComponentProps) {
               {
                 step: '02',
                 title: 'スライド選択と指示',
-                text: '修正したいスライドをクリック。「背景を明るく」と入力。',
+                text: '修正したいスライドをクリック。「円グラフにかえて」と入力。',
                 icon: MousePointerClick,
               },
               {
