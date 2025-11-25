@@ -21,7 +21,7 @@ Nano Banana Pro (Gemini Pro 3) やGoogle Notebook LMで生成したスライド�
 ## 技術スタック
 
 - **Frontend**: React Router v7, shadcn/ui, TailwindCSS v4
-- **AI**: Vercel AI SDK with Google Gemini API (nano banana pro model)
+- **AI**: Google Gemini API (@google/genai)
 - **Language**: TypeScript
 - **Build**: Vite
 - **Package Manager**: pnpm
@@ -82,6 +82,7 @@ pnpm format:fix
 │   ├── routes/              # ルート定義とページコンポーネント
 │   │   ├── _index.tsx      # ランディングページ
 │   │   ├── _app/           # アプリケーション本体
+│   │   ├── guides/         # ガイドページ（APIキー設定、セキュリティ）
 │   │   ├── terms.tsx       # 利用規約
 │   │   └── privacy.tsx     # プライバシーポリシー
 │   ├── components/         # 再利用可能なコンポーネント
@@ -94,25 +95,7 @@ pnpm format:fix
 
 ## デプロイ
 
-### Docker
-
-```bash
-# イメージのビルド
-docker build -t slidecraft .
-
-# コンテナの起動
-docker run -p 3000:3000 slidecraft
-```
-
-### その他のプラットフォーム
-
-以下のプラットフォームでデプロイ可能です：
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Fly.io
-- Railway
+現在Vercelで稼働中です。
 
 ## ライセンス
 
