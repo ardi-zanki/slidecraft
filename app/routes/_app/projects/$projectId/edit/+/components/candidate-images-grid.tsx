@@ -15,7 +15,7 @@ import {
 } from '~/components/ui/alert-dialog'
 import { Button } from '~/components/ui/button'
 import type { Slide } from '~/lib/types'
-import type { clientAction } from '../+actions'
+import type { clientAction } from '../../index'
 
 interface CandidateImagesGridProps {
   slide: Slide

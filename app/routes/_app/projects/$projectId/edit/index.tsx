@@ -1,5 +1,6 @@
 import { AlertCircle, Home } from 'lucide-react'
 import { Link, redirect, useRevalidator, useRouteError } from 'react-router'
+import { match } from 'ts-pattern'
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
 import { Button } from '~/components/ui/button'
 import {
@@ -7,15 +8,17 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from '~/components/ui/resizable'
-import { getProject } from '~/lib/projects-repository.client'
-import { loadSlides } from '~/lib/slides-repository.client'
-import { ControlPanel } from './+control-panel'
-import { EditorActions } from './+editor-actions'
-import { MainPreview } from './+main-preview'
-import { Sidebar } from './+sidebar'
+import { ControlPanel } from './+/control-panel'
+import { EditorActions } from './+/editor-actions'
+import { MainPreview } from './+/main-preview'
+import {
+  deleteCandidate,
+  resetToOriginal,
+  selectCandidate,
+} from './+/mutations'
+import { getEditorData } from './+/queries'
+import { Sidebar } from './+/sidebar'
 import type { Route } from './+types/index'
-
-export { clientAction } from './+actions'
 
 export const handle = {
   breadcrumb: (data: Route.ComponentProps['loaderData']) => ({
@@ -23,12 +26,12 @@ export const handle = {
   }),
 }
 
-export function meta({ data }: Route.MetaArgs): Route.MetaDescriptors {
-  if (!data) {
+export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
+  if (!loaderData) {
     return [{ title: 'エディタ - SlideCraft' }]
   }
   return [
-    { title: `${data.project.name} - SlideCraft` },
+    { title: `${loaderData.project.name} - SlideCraft` },
     { name: 'description', content: 'スライドを編集・修正' },
   ]
 }
@@ -37,32 +40,25 @@ export async function clientLoader({
   request,
   params,
 }: Route.ClientLoaderArgs) {
-  const { projectId } = params
-  const [project, slides] = await Promise.all([
-    getProject(projectId),
-    loadSlides(projectId),
-  ])
+  const data = await getEditorData(params.projectId, request.url)
+  if (!data) throw redirect('/projects')
+  return data
+}
 
-  // プロジェクトが存在しない場合はプロジェクト一覧にリダイレクト
-  if (!project) {
-    throw redirect('/projects')
-  }
+export async function clientAction({
+  request,
+  params,
+}: Route.ClientActionArgs) {
+  const formData = await request.formData()
+  const action = formData.get('_action') as string
 
-  // スライドが存在しない場合はプロジェクト一覧にリダイレクト
-  if (slides.length === 0) {
-    throw redirect('/projects')
-  }
-
-  // クエリパラメータからスライドインデックスを取得
-  const url = new URL(request.url)
-  const slideParam = url.searchParams.get('slide')
-  const selectedIndex = slideParam ? Number.parseInt(slideParam, 10) : 0
-
-  // インデックスが範囲外の場合は0にリセット
-  const validIndex =
-    selectedIndex >= 0 && selectedIndex < slides.length ? selectedIndex : 0
-
-  return { projectId, project, slides, selectedIndex: validIndex }
+  return match(action)
+    .with('selectCandidate', () => selectCandidate(formData, params.projectId))
+    .with('resetToOriginal', () => resetToOriginal(formData, params.projectId))
+    .with('deleteCandidate', () => deleteCandidate(formData, params.projectId))
+    .otherwise(() => {
+      throw new Response('Invalid action', { status: 400 })
+    })
 }
 
 export default function Editor({ loaderData }: Route.ComponentProps) {

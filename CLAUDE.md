@@ -63,6 +63,17 @@ TailwindCSS v4 is configured via Vite plugin (`@tailwindcss/vite`). Global style
 
 Before running TypeScript compiler, run `react-router typegen` to generate route types. The `typecheck` script handles this automatically.
 
+### React Router Auto Routes Guidelines
+
+Uses react-router-auto-routes for folder-based routing.
+
+- `index.tsx`: route entry (loader/action/component), `_layout.tsx`: layout
+- `+/` folder for colocated helpers: `queries.ts`, `mutations.ts`, `components/`, `hooks/`
+- `_auth/`: pathless layout, `$param`: dynamic segment, `$.tsx`: splat
+- Sibling routes: folder + `index.tsx` (e.g., `$id/index.tsx` and `$id/edit.tsx`)
+- Shared code: same route → `+/`, 3+ routes → `app/features/`
+- Action dispatch: use `ts-pattern` match in clientAction, logic in `+/mutations.ts`
+
 ## React Development Guidelines
 
 ### File Naming Conventions

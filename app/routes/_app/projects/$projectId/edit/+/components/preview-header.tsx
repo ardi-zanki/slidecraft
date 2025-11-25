@@ -2,7 +2,7 @@ import { AlertCircle, RotateCcw } from 'lucide-react'
 import { useFetcher } from 'react-router'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 import { Button } from '~/components/ui/button'
-import type { clientAction } from '../+actions'
+import type { clientAction } from '../../index'
 
 interface PreviewHeaderProps {
   slideNumber: number
