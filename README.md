@@ -2,6 +2,8 @@
 
 AI生成スライドをピンポイント修正するWebアプリケーション。
 
+<img width="1280" height="800" alt="image" src="https://github.com/user-attachments/assets/72eda644-e706-4abc-9d88-45ef671fc4c1" />
+
 「30枚のうち3枚だけ直したいのに、再生成すると5〜10分待つ上に完璧だった27枚まで変わってしまうガチャ状態」という問題を解決します。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
