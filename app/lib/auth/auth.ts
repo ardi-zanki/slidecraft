@@ -3,7 +3,15 @@ import { anonymous } from 'better-auth/plugins'
 import { prismaAdapter } from 'better-auth/adapters/prisma'
 import { prisma } from '~/lib/db/prisma'
 
+const trustedOrigins = process.env.BETTER_AUTH_TRUSTED_ORIGINS
+  ? process.env.BETTER_AUTH_TRUSTED_ORIGINS.split(',')
+      .map((origin) => origin.trim())
+      .filter((origin) => origin.length > 0)
+  : []
+
 export const auth = betterAuth({
+  baseURL: process.env.BETTER_AUTH_URL,
+  trustedOrigins,
   database: prismaAdapter(prisma, {
     provider: 'sqlite',
   }),
