@@ -57,9 +57,10 @@ export async function loader({ request }: Route.LoaderArgs) {
 
     return Response.json(result)
   } catch (error) {
-    console.error('[Cron] cleanup-sessions error:', error)
+    const errorId = crypto.randomUUID()
+    console.error(`[Cron] cleanup-sessions error (${errorId}):`, error)
     return Response.json(
-      { success: false, error: String(error) },
+      { success: false, error: 'Internal server error', errorId },
       { status: 500 },
     )
   }
