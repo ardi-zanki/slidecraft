@@ -51,3 +51,45 @@ prettier と biome で `app/generated` を無視するよう設定した。
 1. 環境変数の型安全性を確保する仕組みは最初から入れておくべきだった。`BETTER_AUTH_SECRET` のような重要な設定が漏れるリスクを防げる。
 
 2. レビュー指摘を受けてからテストを書くのではなく、ロジック抽出時にテストを同時に書く習慣をつけると手戻りが減る。
+
+---
+
+## Vercel デプロイ修正
+
+### ユーザー指示
+
+デプロイしたら動かない。環境変数が空。techtalk チームではなく mizoguchi-coji になっている。middleware のエラー「Invalid `context` value provided to `handleRequest`. When middleware is enabled you must return an instance of `RouterContextProvider` from your `getLoadContext` function.」
+
+### ユーザー意図（推測）
+
+認証基盤を本番環境にデプロイして動作確認したい。
+
+### 作業内容
+
+最初の問題は Vercel プロジェクトが `mizoguchi-cojis-projects` に紐づいていたこと。`.vercel` を削除して `vercel link --scope techtalk --yes` で techtalk チームに再リンクした。
+
+techtalk チームの slidecraft には環境変数が設定されていなかったため、以下を追加した。
+
+- `DATABASE_URL` - Turso データベース URL
+- `DATABASE_AUTH_TOKEN` - Turso 認証トークン（`turso db tokens create slidecraft` で生成）
+- `BETTER_AUTH_SECRET` - セッション署名用シークレット（`openssl rand -base64 32` で生成）
+- `BETTER_AUTH_URL` - https://www.slidecraft.work
+- `BETTER_AUTH_TRUSTED_ORIGINS` - https://www.slidecraft.work
+- `CRON_SECRET` - Cron ジョブ認証用（`openssl rand -hex 16` で生成）
+
+次の問題は React Router v7 の middleware と Vercel preset の互換性問題。Vercel preset はデフォルトで `AppLoadContext` を使うが、middleware は `RouterContextProvider` を必要とする。
+
+https://zenn.dev/yuheitomi/articles/rr7-middleware-vercel を参考に、カスタムサーバーエントリを作成して解決した。
+
+1. `server/app.ts` を作成し、`RouterContextProvider` を渡す `createRequestHandler` を定義
+2. `vite.config.ts` で SSR ビルド時に `server/app.ts` をエントリポイントとして指定
+
+マイグレーションスクリプトの SQL インジェクション対策として `escapeSqlString` 関数を追加し、INSERT 文で値をエスケープするようにした。
+
+### 成果物
+
+- `.vercel` - techtalk チームに再リンク
+- Vercel 環境変数 - 6 個追加
+- `server/app.ts` - カスタムリクエストハンドラー（RouterContextProvider 対応）
+- `vite.config.ts` - SSR ビルドのエントリポイント設定
+- `scripts/migrate-turso.ts` - `escapeSqlString` 関数追加
