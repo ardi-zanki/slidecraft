@@ -74,6 +74,9 @@ importers:
       ts-pattern:
         specifier: 5.9.0
         version: 5.9.0
+      zod:
+        specifier: 4.1.13
+        version: 4.1.13
     devDependencies:
       '@biomejs/biome':
         specifier: 2.3.7
