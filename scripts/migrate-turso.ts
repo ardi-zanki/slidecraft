@@ -9,8 +9,8 @@
  *   pnpm db:migrate:turso
  */
 
-import { createClient } from '@libsql/client'
-import { readdirSync, readFileSync, existsSync } from 'node:fs'
+import { type LibsqlError, createClient } from '@libsql/client'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const DATABASE_URL = process.env.DATABASE_URL
@@ -31,6 +31,79 @@ const client = createClient({
 
 const MIGRATIONS_DIR = join(process.cwd(), 'prisma/migrations')
 
+function splitSqlStatements(sql: string): string[] {
+  const statements: string[] = []
+  let current = ''
+  let inSingleQuote = false
+  let inDoubleQuote = false
+  let inMultiLineComment = false
+  let inSingleLineComment = false
+
+  for (let i = 0; i < sql.length; i++) {
+    const char = sql[i]
+    const nextChar = sql[i + 1]
+    const prevChar = sql[i - 1]
+
+    // Handle multi-line comments
+    if (!inSingleQuote && !inDoubleQuote && !inSingleLineComment) {
+      if (char === '/' && nextChar === '*') {
+        inMultiLineComment = true
+        i++ // Skip next character
+        continue
+      }
+      if (inMultiLineComment && char === '*' && nextChar === '/') {
+        inMultiLineComment = false
+        i++ // Skip next character
+        continue
+      }
+    }
+
+    // Handle single-line comments
+    if (!inSingleQuote && !inDoubleQuote && !inMultiLineComment) {
+      if (char === '-' && nextChar === '-') {
+        inSingleLineComment = true
+        i++ // Skip next character
+        continue
+      }
+      if (inSingleLineComment && char === '\n') {
+        inSingleLineComment = false
+        continue
+      }
+    }
+
+    if (inMultiLineComment || inSingleLineComment) {
+      continue
+    }
+
+    // Handle string literals
+    if (char === "'" && prevChar !== '\\') {
+      inSingleQuote = !inSingleQuote
+    } else if (char === '"' && prevChar !== '\\') {
+      inDoubleQuote = !inDoubleQuote
+    }
+
+    // Handle semicolons (statement separators)
+    if (char === ';' && !inSingleQuote && !inDoubleQuote) {
+      const statement = current.trim()
+      if (statement.length > 0) {
+        statements.push(statement)
+      }
+      current = ''
+      continue
+    }
+
+    current += char
+  }
+
+  // Add final statement if exists
+  const finalStatement = current.trim()
+  if (finalStatement.length > 0) {
+    statements.push(finalStatement)
+  }
+
+  return statements
+}
+
 async function ensureMigrationsTable() {
   await client.execute(`
     CREATE TABLE IF NOT EXISTS _prisma_migrations (
@@ -42,11 +115,13 @@ async function ensureMigrationsTable() {
 }
 
 async function getAppliedMigrations(): Promise<Set<string>> {
-  const result = await client.execute('SELECT migration_name FROM _prisma_migrations')
+  const result = await client.execute(
+    'SELECT migration_name FROM _prisma_migrations',
+  )
   return new Set(result.rows.map((row) => row.migration_name as string))
 }
 
-async function getMigrationFolders(): Promise<string[]> {
+function getMigrationFolders(): string[] {
   if (!existsSync(MIGRATIONS_DIR)) {
     return []
   }
@@ -66,10 +141,7 @@ async function applyMigration(migrationName: string) {
   const sql = readFileSync(sqlPath, 'utf-8')
 
   // SQLを個別のステートメントに分割して実行
-  const statements = sql
-    .split(';')
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0 && !s.startsWith('--'))
+  const statements = splitSqlStatements(sql)
 
   console.log(`📦 Applying: ${migrationName}`)
 
@@ -77,9 +149,13 @@ async function applyMigration(migrationName: string) {
     try {
       await client.execute(statement)
     } catch (error) {
-      // テーブル/インデックスが既に存在する場合はスキップ
-      const message = String(error)
-      if (message.includes('already exists')) {
+      // Check for SQLite "already exists" errors using LibsqlError
+      // SQLITE_ERROR (code 1) is returned for "table already exists", "index already exists", etc.
+      const libsqlError = error as LibsqlError
+      if (
+        libsqlError.code === 'SQLITE_ERROR' &&
+        libsqlError.message?.includes('already exists')
+      ) {
         console.log(`   ⏭️  Skipped (already exists)`)
         continue
       }
