@@ -8,6 +8,7 @@ import { useBreadcrumbs } from '~/hooks/use-breadcrumbs'
 import { auth } from '~/lib/auth/auth'
 import { sessionContext } from '~/lib/auth/session.context'
 import { cn } from '~/lib/utils'
+import { getOrCreateSession } from './+/session-middleware'
 import type { Route } from './+types/_layout'
 
 /**
@@ -17,46 +18,17 @@ import type { Route } from './+types/_layout'
  */
 export const middleware: Route.MiddlewareFunction[] = [
   async ({ request, context }, next) => {
-    let session = null
-    let setCookieHeader: string | null = null
-
-    try {
-      // 既存セッションを確認
-      session = await auth.api.getSession({ headers: request.headers })
-
-      // セッションがなければ匿名サインイン
-      if (!session) {
-        const signInResponse = await auth.api.signInAnonymous({
-          headers: request.headers,
-          asResponse: true,
-        })
-        if (signInResponse) {
-          setCookieHeader = signInResponse.headers.get('set-cookie')
-          // 新しい cookie を使ってセッションを再取得
-          const newHeaders = new Headers(request.headers)
-          if (setCookieHeader) {
-            // Set-Cookie から cookie 値を抽出して Cookie ヘッダーに設定
-            const cookieValue = setCookieHeader.split(';')[0]
-            newHeaders.set('cookie', cookieValue)
-          }
-          session = await auth.api.getSession({ headers: newHeaders })
-        }
-      }
-    } catch (error) {
-      // 認証APIエラー時はセッションなしで続行（アプリはセッションなしでも動作可能）
-      console.error('[Auth Middleware] Failed to get/create session:', error)
-    }
+    const { session, setCookieHeader } = await getOrCreateSession(
+      request.headers,
+      auth.api,
+    )
 
     context.set(sessionContext, session)
 
-    // 次の処理を実行
     const response = await next()
-
-    // Set-Cookie があれば Response に追加
     if (setCookieHeader && response) {
       response.headers.append('set-cookie', setCookieHeader)
     }
-
     return response
   },
 ]
