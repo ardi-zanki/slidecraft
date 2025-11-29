@@ -20,11 +20,12 @@ export function getImageDimensions(blob: Blob): Promise<ImageDimensions> {
     const img = new Image()
 
     img.onload = () => {
-      URL.revokeObjectURL(url)
-      resolve({
+      const result = {
         width: img.naturalWidth,
         height: img.naturalHeight,
-      })
+      }
+      URL.revokeObjectURL(url)
+      resolve(result)
     }
 
     img.onerror = () => {
@@ -45,8 +46,9 @@ function createImageFromBlob(blob: Blob): Promise<HTMLImageElement> {
     const img = new Image()
 
     img.onload = () => {
-      URL.revokeObjectURL(url)
+      // 画像データ取得後にURLを解放
       resolve(img)
+      URL.revokeObjectURL(url)
     }
 
     img.onerror = () => {
