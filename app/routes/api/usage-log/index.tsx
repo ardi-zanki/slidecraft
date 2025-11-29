@@ -1,24 +1,12 @@
 import { data } from 'react-router'
-import * as z from 'zod'
+import {
+  ApiUsageLogSchema,
+  MAX_METADATA_SIZE,
+} from '~/lib/api-usage-log-schema'
 import { auth } from '~/lib/auth/auth'
 import { prisma } from '~/lib/db/prisma'
 import { checkRateLimit } from '~/lib/rate-limiter'
 import type { Route } from './+types'
-
-// メタデータの最大サイズ（10KB）
-const MAX_METADATA_SIZE = 10 * 1024
-
-// 入力スキーマ
-const ApiUsageLogSchema = z.object({
-  operation: z.enum(['slide_analysis', 'image_generation']),
-  model: z.string().min(1).max(100),
-  inputTokens: z.number().int().nonnegative().max(10_000_000),
-  outputTokens: z.number().int().nonnegative().max(10_000_000),
-  costUsd: z.number().nonnegative().max(1000),
-  costJpy: z.number().nonnegative().max(150_000),
-  exchangeRate: z.number().positive().max(500),
-  metadata: z.record(z.string(), z.unknown()).optional(),
-})
 
 /**
  * API利用ログを記録するエンドポイント

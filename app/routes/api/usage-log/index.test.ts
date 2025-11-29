@@ -1,20 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import * as z from 'zod'
-
-// メタデータの最大サイズ（10KB）
-const MAX_METADATA_SIZE = 10 * 1024
-
-// 入力スキーマ（テスト用にインラインで定義）
-const ApiUsageLogSchema = z.object({
-  operation: z.enum(['slide_analysis', 'image_generation']),
-  model: z.string().min(1).max(100),
-  inputTokens: z.number().int().nonnegative().max(10_000_000),
-  outputTokens: z.number().int().nonnegative().max(10_000_000),
-  costUsd: z.number().nonnegative().max(1000),
-  costJpy: z.number().nonnegative().max(150_000),
-  exchangeRate: z.number().positive().max(500),
-  metadata: z.record(z.string(), z.unknown()).optional(),
-})
+import {
+  ApiUsageLogSchema,
+  MAX_METADATA_SIZE,
+} from '~/lib/api-usage-log-schema'
 
 describe('ApiUsageLogSchema validation', () => {
   describe('valid inputs', () => {
