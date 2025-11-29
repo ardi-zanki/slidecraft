@@ -17,13 +17,17 @@ export async function action({ request }: Route.ActionArgs) {
     return data({ error: 'Method not allowed' }, { status: 405 })
   }
 
+  // エラーログ用のコンテキスト
+  let userId: string | undefined
+  let operation: string | undefined
+
   try {
     // セッションからユーザーIDを取得（認証必須）
     const session = await auth.api.getSession({ headers: request.headers })
     if (!session?.user?.id) {
       return data({ error: 'Unauthorized' }, { status: 401 })
     }
-    const userId = session.user.id
+    userId = session.user.id
 
     // レート制限チェック（ユーザーIDベース）
     const rateLimit = await checkRateLimit(`usage-log:${userId}`)
@@ -55,21 +59,13 @@ export async function action({ request }: Route.ActionArgs) {
       return data({ error: 'Invalid request body' }, { status: 400 })
     }
 
-    const {
-      operation,
-      model,
-      inputTokens,
-      outputTokens,
-      costUsd,
-      costJpy,
-      exchangeRate,
-      metadata,
-    } = parseResult.data
+    const validatedData = parseResult.data
+    operation = validatedData.operation
 
     // メタデータのサイズチェック
     let metadataJson: string | null = null
-    if (metadata) {
-      metadataJson = JSON.stringify(metadata)
+    if (validatedData.metadata) {
+      metadataJson = JSON.stringify(validatedData.metadata)
       if (metadataJson.length > MAX_METADATA_SIZE) {
         return data({ error: 'Metadata too large' }, { status: 400 })
       }
@@ -78,20 +74,20 @@ export async function action({ request }: Route.ActionArgs) {
     await prisma.apiUsageLog.create({
       data: {
         userId,
-        operation,
-        model,
-        inputTokens,
-        outputTokens,
-        costUsd,
-        costJpy,
-        exchangeRate,
+        operation: validatedData.operation,
+        model: validatedData.model,
+        inputTokens: validatedData.inputTokens,
+        outputTokens: validatedData.outputTokens,
+        costUsd: validatedData.costUsd,
+        costJpy: validatedData.costJpy,
+        exchangeRate: validatedData.exchangeRate,
         metadata: metadataJson,
       },
     })
 
     return data({ success: true })
   } catch (error) {
-    console.error('Failed to log API usage:', error)
+    console.error('Failed to log API usage:', error, { userId, operation })
     return data({ error: 'Internal server error' }, { status: 500 })
   }
 }
