@@ -98,17 +98,13 @@ describe('rate-limiter', () => {
       expect(warnSpy).not.toHaveBeenCalled()
     })
 
-    it('should warn in production when credentials missing', async () => {
+    it('should throw in production when credentials missing', async () => {
       delete process.env.UPSTASH_REDIS_REST_URL
       delete process.env.UPSTASH_REDIS_REST_TOKEN
       process.env.NODE_ENV = 'production'
 
-      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
-
-      await import('./rate-limiter')
-
-      expect(warnSpy).toHaveBeenCalledWith(
-        'Upstash Redis credentials not found. Rate limiting is disabled.',
+      await expect(import('./rate-limiter')).rejects.toThrow(
+        'Upstash Redis credentials (UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN) are required in production',
       )
     })
   })

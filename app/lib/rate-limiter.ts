@@ -10,17 +10,18 @@ import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
 
 // 環境変数がない場合はnullを返す（開発環境でのスキップ用）
+// 本番環境では環境変数が必須
 function createRateLimiter() {
   const url = process.env.UPSTASH_REDIS_REST_URL
   const token = process.env.UPSTASH_REDIS_REST_TOKEN
 
   if (!url || !token) {
-    // 開発環境では警告を出さない
     if (process.env.NODE_ENV === 'production') {
-      console.warn(
-        'Upstash Redis credentials not found. Rate limiting is disabled.',
+      throw new Error(
+        'Upstash Redis credentials (UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN) are required in production',
       )
     }
+    // 開発環境ではレート制限をスキップ
     return null
   }
 
