@@ -6,8 +6,8 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "@tailwindcss/oxide",
-      "core-js",
-      "esbuild"
+      "esbuild",
+      "prisma"
     ]
   },
   "scripts": {
@@ -43,7 +43,7 @@
     "clsx": "2.1.1",
     "isbot": "5.1.32",
     "jspdf": "3.0.4",
-    "lucide-react": "0.554.0",
+    "lucide-react": "0.555.0",
     "next-themes": "0.4.6",
     "pdfjs-dist": "5.4.394",
     "pptxgenjs": "4.0.1",
@@ -58,20 +58,20 @@
     "zod": "4.1.13"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.3.7",
+    "@biomejs/biome": "2.3.8",
     "@react-router/dev": "7.9.6",
     "@tailwindcss/vite": "4.1.17",
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.0",
     "@testing-library/user-event": "14.6.1",
     "@types/node": "24.10.1",
-    "@types/react": "19.2.6",
+    "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "5.1.1",
-    "@vitest/ui": "4.0.13",
-    "happy-dom": "20.0.10",
+    "@vitest/ui": "4.0.14",
+    "happy-dom": "20.0.11",
     "npm-run-all": "4.1.5",
-    "prettier": "3.6.2",
+    "prettier": "3.7.2",
     "prettier-plugin-organize-imports": "4.3.0",
     "prettier-plugin-tailwindcss": "0.7.1",
     "prisma": "7.0.1",
@@ -83,7 +83,7 @@
     "vite": "7.2.4",
     "vite-plugin-devtools-json": "1.0.0",
     "vite-tsconfig-paths": "5.1.4",
-    "vitest": "4.0.13",
+    "vitest": "4.0.14",
     "zx": "8.8.5"
   }
 }
