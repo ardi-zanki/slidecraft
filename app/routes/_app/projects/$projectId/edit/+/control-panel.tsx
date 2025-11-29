@@ -1,22 +1,30 @@
-import { useState } from 'react'
+import { FileSpreadsheet } from 'lucide-react'
+import { useCallback, useState } from 'react'
 import { ApiKeyDialog } from '~/components/api-key-dialog'
+import { Button } from '~/components/ui/button'
+import { loadCurrentSlideImage } from '~/lib/slides-repository.client'
 import type { Slide } from '~/lib/types'
 import { CandidateImagesGrid } from './components/candidate-images-grid'
 import { GenerationControlForm } from './components/generation-control-form'
+import { PptxExportDialog } from './components/pptx-export-dialog'
 import { useCostEstimate } from './hooks/use-cost-estimate'
 import { useSlideGeneration } from './hooks/use-slide-generation'
 import { useSlideImages } from './hooks/use-slide-images'
 
 interface ControlPanelProps {
   projectId: string
+  projectName: string
   slide: Slide
+  slideNumber: number
   allSlides: Slide[]
   onSlideUpdate: () => void
 }
 
 export function ControlPanel({
   projectId,
+  projectName,
   slide,
+  slideNumber,
   allSlides,
   onSlideUpdate,
 }: ControlPanelProps) {
@@ -76,7 +84,33 @@ export function ControlPanel({
     resetGenerationCost,
   })
 
-  // 生成処理はuseSlideGenerationフックに移行
+  // ========================================
+  // PPTXエクスポート関連の状態
+  // ========================================
+
+  const [showPptxDialog, setShowPptxDialog] = useState(false)
+  const [showPptxApiKeyDialog, setShowPptxApiKeyDialog] = useState(false)
+  const [currentSlideBlob, setCurrentSlideBlob] = useState<Blob | null>(null)
+
+  const handleOpenPptxDialog = useCallback(async () => {
+    try {
+      const blob = await loadCurrentSlideImage(projectId, slide)
+      setCurrentSlideBlob(blob)
+      setShowPptxDialog(true)
+    } catch (error) {
+      console.error('スライド画像の読み込みに失敗:', error)
+    }
+  }, [projectId, slide])
+
+  const handlePptxApiKeyRequired = useCallback(() => {
+    setShowPptxDialog(false)
+    setShowPptxApiKeyDialog(true)
+  }, [])
+
+  const handlePptxApiKeySaved = useCallback(() => {
+    setShowPptxApiKeyDialog(false)
+    setShowPptxDialog(true)
+  }, [])
 
   return (
     <>
@@ -84,6 +118,21 @@ export function ControlPanel({
         open={showApiKeyDialog}
         onOpenChange={setShowApiKeyDialog}
         onSaved={handleGenerate}
+      />
+
+      <ApiKeyDialog
+        open={showPptxApiKeyDialog}
+        onOpenChange={setShowPptxApiKeyDialog}
+        onSaved={handlePptxApiKeySaved}
+      />
+
+      <PptxExportDialog
+        open={showPptxDialog}
+        onOpenChange={setShowPptxDialog}
+        imageBlob={currentSlideBlob}
+        projectName={projectName}
+        slideNumber={slideNumber}
+        onApiKeyRequired={handlePptxApiKeyRequired}
       />
 
       <div className="flex h-full flex-col bg-white">
@@ -120,6 +169,25 @@ export function ControlPanel({
               loadOriginalImage={loadOriginalImage}
               loadCandidateImage={loadCandidateImage}
             />
+
+            {/* PPTXエクスポート */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-semibold text-slate-600">
+                スライドエクスポート
+              </h3>
+              <Button
+                onClick={handleOpenPptxDialog}
+                size="sm"
+                variant="outline"
+                className="w-full"
+              >
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                PPTXエクスポート
+              </Button>
+              <p className="text-xs text-slate-500">
+                現在のスライドを編集可能なPowerPoint形式でダウンロード
+              </p>
+            </div>
           </div>
         </div>
       </div>
