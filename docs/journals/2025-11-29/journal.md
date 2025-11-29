@@ -93,3 +93,76 @@ https://zenn.dev/yuheitomi/articles/rr7-middleware-vercel を参考に、カス�
 - `server/app.ts` - カスタムリクエストハンドラー（RouterContextProvider 対応）
 - `vite.config.ts` - SSR ビルドのエントリポイント設定
 - `scripts/migrate-turso.ts` - `escapeSqlString` 関数追加
+
+---
+
+## Vercel 環境変数と Better Auth 設定の修正
+
+### ユーザー指示
+
+Vercel に設定してる環境変数が間違ってるかも。トークンいれるいれないで。ローカルで Turso につながるようにして試したい。
+
+### ユーザー意図（推測）
+
+本番環境で認証が動作しない原因を特定し、ローカルで Turso に接続して再現・修正したい。
+
+### 作業内容
+
+まず `.env.production` の `DATABASE_URL` にトークンがクエリパラメータとして含まれていた問題を発見した。Prisma LibSql アダプターは `url` と `authToken` を別引数で受け取るため、以下のように分離した。
+
+```bash
+# Before
+DATABASE_URL=libsql://...?authToken=eyJ...
+
+# After
+DATABASE_URL=libsql://...
+DATABASE_AUTH_TOKEN=eyJ...
+```
+
+ローカルで Turso に接続してテストしたところ、Better Auth がスネークケース（`email_verified`）でカラム名を送っていた。Prisma スキーマは `@map` でスネークケースに変換しているが、Prisma クライアントはキャメルケース（`emailVerified`）を使う。
+
+`auth.ts` の `fields` マッピングが逆方向だったため、これを削除してシンプルな設定に変更した。
+
+```typescript
+// Before: 複雑な fields マッピング
+export const auth = betterAuth({
+  // ...
+  user: {
+    fields: {
+      emailVerified: 'email_verified',
+      // ...
+    },
+  },
+  // ...
+})
+
+// After: Prisma アダプターに任せる
+export const auth = betterAuth({
+  secret: process.env.BETTER_AUTH_SECRET,
+  baseURL: process.env.BETTER_AUTH_URL,
+  trustedOrigins,
+  database: prismaAdapter(prisma, {
+    provider: 'sqlite',
+  }),
+  plugins: [anonymous()],
+})
+```
+
+ローカルでは動作するようになったが、本番環境で Set-Cookie が発行されない問題が残った。Vercel の環境変数を `vercel env pull` で確認したところ、値の末尾に改行文字（`\n`）が含まれていた。
+
+```bash
+BETTER_AUTH_URL="https://www.slidecraft.work\n"
+BETTER_AUTH_TRUSTED_ORIGINS="https://www.slidecraft.work\n"
+```
+
+Vercel ダッシュボードで環境変数を再設定し、末尾の改行を削除したところ正常に動作するようになった。
+
+### 成果物
+
+- `.env.production` - `DATABASE_URL` と `DATABASE_AUTH_TOKEN` を分離
+- `app/lib/auth/auth.ts` - 不要な fields マッピングを削除
+- Vercel 環境変数 - 末尾改行を削除して再設定
+
+### 教訓
+
+Vercel 環境変数の設定は CLI でなくダッシュボードから手動で行うか、設定後に `vercel env pull` で値を確認する習慣をつける。Claude Code に環境変数設定を任せると、値に改行が混入するリスクがある。
