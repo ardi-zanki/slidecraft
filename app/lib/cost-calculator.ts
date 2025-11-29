@@ -1,24 +1,63 @@
 /**
  * Gemini API コスト計算ユーティリティ
  *
- * 料金体系（Gemini 3 Pro Image - Standard Tier）:
- * - テキスト入力: $2.00/1M tokens (≤200k tokens)
- * - テキスト出力: $12.00/1M tokens
- * - 画像入力: $2.00/1M tokens → 約 $0.0011/image
- * - 画像出力: $120.00/1M tokens
- *   - 1K/2K解像度 (1024-2048px): $0.134/image (1,120 tokens)
- *   - 4K解像度 (up to 4096px): $0.24/image (2,000 tokens)
+ * 料金体系（Standard Tier）:
+ * - Gemini 2.5 Flash: input $0.15/1M, output $0.60/1M
+ * - Gemini 3 Pro: input $2.00/1M, output $12.00/1M
+ * - Gemini 3 Pro Image: input $2.00/1M, output $12.00/1M (+ 画像出力料金)
+ *   - 画像入力: $2.00/1M tokens → 約 $0.0011/image
+ *   - 画像出力: $120.00/1M tokens
+ *     - 1K/2K解像度 (1024-2048px): $0.134/image (1,120 tokens)
+ *     - 4K解像度 (up to 4096px): $0.24/image (2,000 tokens)
  *
  * 参考: https://ai.google.dev/gemini-api/docs/pricing
  */
 
-// 現在使用しているモデルの料金（USD）
-const MODEL_PRICING = {
-  textInputPerMillion: 2.0, // テキスト入力単価 (≤200k tokens)
-  textOutputPerMillion: 12.0, // テキスト出力単価
+/**
+ * モデルごとの料金定義（per million tokens, USD）
+ * 全モデルの料金をここで一元管理
+ */
+export const MODEL_PRICING = {
+  // テキストモデル
+  'gemini-2.5-flash': { input: 0.15, output: 0.6 },
+  'gemini-3-pro-preview': { input: 2.0, output: 12.0 },
+  // 画像生成モデル
+  'gemini-3-pro-image-preview': { input: 2.0, output: 12.0 },
+} as const
+
+export type ModelId = keyof typeof MODEL_PRICING
+
+/**
+ * 画像生成固有の料金（USD）
+ */
+export const IMAGE_PRICING = {
   imageInputPerImage: 0.0011, // 画像入力単価 ($2.00/1M tokens)
   imageOutput1K2K: 0.134, // 1K/2K解像度画像の出力単価 ($120.00/1M tokens, 1,120 tokens/image)
   imageOutput4K: 0.24, // 4K解像度画像の出力単価 ($120.00/1M tokens, 2,000 tokens/image)
+}
+
+/**
+ * モデルの料金を取得（未定義の場合はデフォルト値）
+ */
+export function getModelPricing(model: string): {
+  input: number
+  output: number
+} {
+  return MODEL_PRICING[model as ModelId] ?? { input: 0.15, output: 0.6 }
+}
+
+/**
+ * トークン数からコストを計算（USD）
+ */
+export function calculateTokenCost(
+  model: ModelId,
+  inputTokens: number,
+  outputTokens: number,
+): number {
+  const pricing = MODEL_PRICING[model]
+  const inputCost = (inputTokens / 1_000_000) * pricing.input
+  const outputCost = (outputTokens / 1_000_000) * pricing.output
+  return inputCost + outputCost
 }
 
 export interface CostEstimate {
@@ -43,9 +82,11 @@ let exchangeRateCache: {
 } | null = null
 
 const CACHE_DURATION = 24 * 60 * 60 * 1000 // 24時間
+const DEFAULT_EXCHANGE_RATE = 150 // 初回エラー時のフォールバック
 
 /**
  * USD/JPY為替レートを取得（キャッシュ付き）
+ * エラー時は期限切れキャッシュ → デフォルト値の順でフォールバック
  */
 export async function getExchangeRate(): Promise<number> {
   // キャッシュが有効ならそれを返す
@@ -73,12 +114,12 @@ export async function getExchangeRate(): Promise<number> {
       return rate
     }
 
-    // レートが取得できない場合はデフォルト値
-    return 150 // 大体の値
+    // レートが取得できない場合は期限切れキャッシュ or デフォルト値
+    return exchangeRateCache?.rate ?? DEFAULT_EXCHANGE_RATE
   } catch (error) {
     console.error('為替レート取得エラー:', error)
-    // エラー時はデフォルト値
-    return 150
+    // エラー時は期限切れキャッシュ or デフォルト値
+    return exchangeRateCache?.rate ?? DEFAULT_EXCHANGE_RATE
   }
 }
 
@@ -102,19 +143,19 @@ export function calculateGenerationCost(
   prompt: string,
   imageCount: number,
 ): CostEstimate {
-  // テキスト入力コスト（プロンプト）
+  // テキスト入力コスト（プロンプト）- gemini-3-pro-image-previewの料金を使用
   const promptTokens = estimatePromptTokens(prompt)
-  const textInputCost =
-    (promptTokens / 1_000_000) * MODEL_PRICING.textInputPerMillion
+  const pricing = getModelPricing('gemini-3-pro-image-preview')
+  const textInputCost = (promptTokens / 1_000_000) * pricing.input
 
   // 画像入力コスト（元画像 1枚）
-  const imageInputCost = MODEL_PRICING.imageInputPerImage
+  const imageInputCost = IMAGE_PRICING.imageInputPerImage
 
   // 入力コスト合計
   const inputCost = textInputCost + imageInputCost
 
   // 画像出力コスト（生成画像 × 枚数、2K解像度を想定）
-  const outputCost = MODEL_PRICING.imageOutput1K2K * imageCount
+  const outputCost = IMAGE_PRICING.imageOutput1K2K * imageCount
 
   // 合計コスト
   const totalCost = inputCost + outputCost

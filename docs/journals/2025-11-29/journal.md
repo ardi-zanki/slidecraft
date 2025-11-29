@@ -748,3 +748,196 @@ JavaScriptオブジェクトのプロパティ列挙順は挿入順が保持さ�
 ### 成果物
 
 - `app/lib/slide-analyzer.client.ts` - デフォルトモデル変更、モデル順序変更
+
+---
+
+## APIコストログ機能の追加
+
+### ユーザー指示
+
+Gemini 3 Proのコストが見積もりの倍になることが多い。DBにログを残したい。どのユーザーが使ったかも含めたい。スライド修正（画像生成）のほうにもログを入れたい。
+
+### ユーザー意図
+
+APIコストの実態を把握し、見積もりと実際の乖離を分析したい。ユーザー別のコスト分析も可能にしたい。
+
+### 作業内容
+
+`ApiUsageLog`テーブルをPrismaスキーマに追加した。記録する情報は以下の通り。
+
+- `userId` - ユーザーID（nullable、匿名ユーザーも記録可能）
+- `operation` - 操作種別（slide_analysis / image_generation）
+- `model` - 使用モデル
+- `inputTokens` / `outputTokens` - トークン数
+- `costUsd` / `costJpy` / `exchangeRate` - コスト情報
+- `metadata` - JSON形式の追加情報
+
+メタデータにはスライド解析の場合は`imageSize`、`textElementCount`、`graphicRegionCount`、`roleBreakdown`（テキスト要素のロール別内訳）を記録。画像生成の場合は`promptLength`、`requestedCount`、`generatedCount`、`originalImageSize`を記録。
+
+APIエンドポイント`POST /api/usage-log`を作成し、クライアントからfire-and-forgetでログを送信する仕組みを実装。エンドポイント側でセッションから`userId`を自動取得するため、クライアントは認証情報を意識する必要がない。
+
+`slide-analyzer.client.ts`と`gemini-api.client.ts`の両方にログ記録処理を追加。画像生成は並列で複数リクエストを送信するため、各リクエストの`usageMetadata`を集計してトータルのトークン数とコストを算出。
+
+本番DB（Turso）へのマイグレーションは`pnpm turso:migrate`で実行。
+
+### 成果物
+
+- `prisma/schema.prisma` - ApiUsageLogモデル追加、Userにリレーション追加
+- `prisma/migrations/20251129092523_add_api_usage_log/` - テーブル作成
+- `prisma/migrations/20251129092731_add_user_to_api_usage_log/` - userId追加
+- `app/routes/api/usage-log/index.tsx` - ログ記録APIエンドポイント
+- `app/lib/api-usage-logger.ts` - クライアント側ロガー
+- `app/lib/slide-analyzer.client.ts` - 解析完了時にログ記録
+- `app/lib/gemini-api.client.ts` - 画像生成完了時にログ記録
+
+### 改善提案
+
+ログが蓄積されたら、ダッシュボード画面を作成してコストの推移やユーザー別の利用状況を可視化できるとよい。また、見積もりロジックの精度向上のため、実際のトークン数と見積もりの比較分析も有用。
+
+---
+
+## APIコストログ機能のコードレビュー対応
+
+### ユーザー指示
+
+コードレビューで指摘された問題点への対応。セキュリティ、テストカバレッジ、コード重複、エラーハンドリングなど。
+
+### ユーザー意図
+
+本番運用に向けてコード品質を向上させ、保守性を高めたい。
+
+### 作業内容
+
+#### セキュリティ修正
+
+1. **入力バリデーション強化** - Zodスキーマで厳密な型・範囲チェックを追加。operation、model、各数値フィールドに適切な制約を設定。
+
+2. **認証必須化** - セッションがない場合は401エラーを返すように変更。匿名アクセスを禁止。
+
+3. **デフォルト値削除** - Zodスキーマからデフォルト値を削除し、すべてのフィールドを必須化。データ整合性を確保。
+
+#### テスト追加
+
+`app/routes/api/usage-log/index.test.ts`と`app/lib/api-usage-logger.test.ts`を作成。Zodスキーマのバリデーションテスト（有効/無効入力、境界値）とfire-and-forget loggerの動作テスト（非ブロッキング、エラー時の静かな失敗）を実装。
+
+#### コード重複解消
+
+モデル料金定義を`cost-calculator.ts`に一元化。`MODEL_PRICING`で全モデルの料金を管理し、`calculateTokenCost()`関数を提供。`slide-analyzer.client.ts`と`gemini-api.client.ts`から重複定義を削除し、統一関数を使用するように変更。
+
+#### 為替レートエラーハンドリング改善
+
+`getExchangeRate()`のフォールバック戦略を改善。API取得失敗時に期限切れキャッシュを優先的に使用し、キャッシュがない場合のみデフォルト値150を返すように変更。一時的なAPIエラーでも直近の実レートが使われるため、ログの精度が向上。
+
+#### パターン一貫性
+
+`gemini-api.client.ts`の為替レート取得を`.then()`チェーンからasync/awaitパターンに変更し、`slide-analyzer.client.ts`と同じパターンに統一。保守性向上。
+
+### 成果物
+
+- `app/routes/api/usage-log/index.tsx` - バリデーション強化、認証必須化、デフォルト値削除
+- `app/routes/api/usage-log/index.test.ts` - スキーマバリデーションテスト
+- `app/lib/api-usage-logger.test.ts` - ロガーテスト
+- `app/lib/cost-calculator.ts` - 料金定義一元化、為替レートフォールバック改善
+- `app/lib/slide-analyzer.client.ts` - 統一料金計算関数を使用
+- `app/lib/gemini-api.client.ts` - 統一料金計算関数を使用、async/awaitパターンに統一
+
+---
+
+## Upstashレート制限の追加
+
+### ユーザー指示
+
+usage-log APIにレート制限がない。匿名ユーザーでも書けてしまうので危険度が高い。Vercel KVか何かで簡単に対策したい。
+
+### ユーザー意図
+
+APIエンドポイントへの濫用を防ぎ、DBが不正リクエストで埋め尽くされるのを防止したい。
+
+### 作業内容
+
+Vercel KVは2024年12月にサンセットされたため、Upstash Redisを直接使用する方式を採用。Vercel Marketplace経由でUpstash KVをプロビジョニングすると、環境変数が自動設定される。
+
+`@upstash/ratelimit`と`@upstash/redis`パッケージを追加し、`rate-limiter.ts`を新規作成。スライディングウィンドウ方式で1分間に30リクエストまでに制限。
+
+`/api/usage-log`エンドポイントに認証後のレート制限チェックを追加。制限超過時は429ステータスとX-RateLimitヘッダーを返す。
+
+開発環境では環境変数が未設定のためレート制限がスキップされる。本番環境で環境変数がない場合のみ警告ログを出力するよう条件を追加。
+
+Gemini 3 Pro解析の目安コストを3円から8円に更新（実測値に基づく調整）。
+
+### 成果物
+
+- `app/lib/rate-limiter.ts` - Upstashレート制限ユーティリティ
+- `app/lib/rate-limiter.test.ts` - レート制限のテスト
+- `app/routes/api/usage-log/index.tsx` - レート制限チェック追加
+- `app/lib/slide-analyzer.client.ts` - 目安コスト更新（3円→8円）
+- `package.json` - @upstash/ratelimit、@upstash/redis追加
+
+### 環境変数
+
+本番環境では以下の環境変数が必要（Vercel Marketplace経由で自動設定）。
+
+- `UPSTASH_REDIS_REST_URL`
+- `UPSTASH_REDIS_REST_TOKEN`
+
+---
+
+## レート制限とAPIログ機能の改善
+
+### ユーザー指示
+
+レビュー指摘への対応。トークン集計の競合状態修正、本番環境でのレート制限必須化、エラーログへのコンテキスト追加、JSDoc追加、スキーマ共有化、未使用コード削除。
+
+### ユーザー意図
+
+コードの堅牢性、保守性、ドキュメント品質を向上させたい。
+
+### 作業内容
+
+**トークン集計の競合状態を修正**
+
+`gemini-api.client.ts`で並列リクエスト中に共有変数`totalInputTokens`/`totalOutputTokens`を直接加算していた。JavaScriptはシングルスレッドだが、非同期処理の完了タイミングによっては不正確な値になる可能性があった。
+
+各リクエストが`{ image, inputTokens, outputTokens }`を返すように変更し、`Promise.all()`完了後に`reduce()`で集計する方式に修正した。
+
+**本番環境でのレート制限必須化**
+
+`rate-limiter.ts`で環境変数がない場合に警告を出すだけだったのを、本番環境では起動時にエラーを投げるよう変更した。セキュリティ上重要な機能が設定ミスで無効化されるリスクを排除。
+
+**Retry-Afterヘッダーの追加**
+
+429レスポンス時にリセットまでの秒数を`Retry-After`ヘッダーで返すよう変更。クライアントが適切なリトライ間隔を知ることができる。
+
+**エラーログへのコンテキスト追加**
+
+`usage-log`エンドポイントのエラーハンドリングで、`userId`と`operation`をログに含めるよう変更。デバッグ時の原因特定が容易になる。
+
+**JSDoc追加**
+
+`api-usage-logger.ts`のインターフェースと関数に詳細なJSDocを追加。使用例も記載。
+
+**スキーマ共有化**
+
+`ApiUsageLogSchema`と`MAX_METADATA_SIZE`を`app/lib/api-usage-log-schema.ts`に抽出し、ルートとテストで共有するよう変更。重複定義によるドリフトを防止。
+
+**未使用コード削除**
+
+`api-usage-log-schema.ts`から未使用の`ApiUsageLogInput`型exportを削除。
+
+**型安全性の向上**
+
+`gemini-api.client.ts`の`MODEL_NAME`に`as const`を追加し、リテラル型として扱うよう変更。`cost-calculator.ts`の`calculateTokenCost`関数の引数を`string`から`ModelId`型に変更し、未定義モデルを渡すとコンパイルエラーになるようにした。
+
+**Redis障害時のfail-open対応**
+
+`rate-limiter.ts`の`checkRateLimit`関数でRedis障害時に例外が発生するとリクエストがブロックされる問題があった。try/catchで例外をキャッチし、エラーログを出力しつつ`success: true`を返すfail-open方式に変更した。レート制限が機能しなくなるリスクはあるが、Redis障害でサービス全体が停止するよりは望ましい。
+
+### 成果物
+
+- `app/lib/gemini-api.client.ts` - トークン集計の競合状態修正、MODEL_NAMEの型安全化
+- `app/lib/cost-calculator.ts` - calculateTokenCostの引数をModelId型に変更
+- `app/lib/rate-limiter.ts` - 本番環境での必須化、Redis障害時のfail-open
+- `app/lib/rate-limiter.test.ts` - テスト追加
+- `app/routes/api/usage-log/index.tsx` - Retry-Afterヘッダー、エラーログコンテキスト
+- `app/lib/api-usage-logger.ts` - JSDoc追加
+- `app/lib/api-usage-log-schema.ts` - スキーマ共有化、未使用コード削除

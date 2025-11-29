@@ -6,6 +6,8 @@
  */
 
 import { GoogleGenAI } from '@google/genai'
+import { logApiUsage } from './api-usage-logger'
+import { calculateTokenCost, getExchangeRate } from './cost-calculator'
 
 /**
  * Data URLからBase64部分のみを抽出
@@ -38,7 +40,7 @@ export interface GeneratedImageData {
   timestamp: number
 }
 
-const MODEL_NAME = 'gemini-3-pro-image-preview'
+const MODEL_NAME = 'gemini-3-pro-image-preview' as const
 
 /**
  * スライドのバリエーションを生成
@@ -75,66 +77,116 @@ export async function generateSlideVariations(
     // Gemini APIクライアントを初期化
     const ai = new GoogleGenAI({ apiKey })
 
-    // 複数の画像を並列生成
-    const requests = Array.from({ length: count }).map(async (_, index) => {
-      try {
-        const response = await ai.models.generateContent({
-          model: MODEL_NAME,
-          contents: {
-            parts: [
-              {
-                text: `${prompt}. Maintain the general layout and aspect ratio of the original slide if possible, but apply the requested changes creatively. High quality presentation slide.`,
-              },
-              {
-                inlineData: {
-                  mimeType: 'image/jpeg',
-                  data: cleanBase64,
+    // 各リクエストの結果（画像とトークン数を含む）
+    interface RequestResult {
+      image: GeneratedImageData | null
+      inputTokens: number
+      outputTokens: number
+    }
+
+    // 複数の画像を並列生成（各リクエストがトークン数を個別に返す）
+    const requests = Array.from({ length: count }).map(
+      async (_, index): Promise<RequestResult> => {
+        try {
+          const response = await ai.models.generateContent({
+            model: MODEL_NAME,
+            contents: {
+              parts: [
+                {
+                  text: `${prompt}. Maintain the general layout and aspect ratio of the original slide if possible, but apply the requested changes creatively. High quality presentation slide.`,
                 },
-              },
-            ],
-          },
-          config: {
-            // 16:9のアスペクト比でスライドサイズで生成
-            imageConfig: {
-              aspectRatio: '16:9',
-              imageSize: '2K',
+                {
+                  inlineData: {
+                    mimeType: 'image/jpeg',
+                    data: cleanBase64,
+                  },
+                },
+              ],
             },
-          },
-        })
+            config: {
+              // 16:9のアスペクト比でスライドサイズで生成
+              imageConfig: {
+                aspectRatio: '16:9',
+                imageSize: '2K',
+              },
+            },
+          })
 
-        // レスポンスから画像を抽出
-        const candidates = response.candidates
-        if (!candidates || candidates.length === 0) {
-          return null
+          // 使用量を取得
+          const usageMetadata = response.usageMetadata
+          const inputTokens = usageMetadata?.promptTokenCount ?? 0
+          const outputTokens = usageMetadata?.candidatesTokenCount ?? 0
+
+          // レスポンスから画像を抽出
+          const candidates = response.candidates
+          if (!candidates || candidates.length === 0) {
+            return { image: null, inputTokens, outputTokens }
+          }
+
+          const parts = candidates[0]?.content?.parts
+          const imagePart = parts?.find((p) => p.inlineData)
+
+          if (imagePart?.inlineData) {
+            return {
+              image: {
+                id: crypto.randomUUID(),
+                dataUrl: `data:${imagePart.inlineData.mimeType || 'image/png'};base64,${imagePart.inlineData.data}`,
+                prompt,
+                timestamp: Date.now() + index,
+              },
+              inputTokens,
+              outputTokens,
+            }
+          }
+
+          return { image: null, inputTokens, outputTokens }
+        } catch (error: unknown) {
+          console.error(`画像生成エラー (${index + 1}/${count}):`, error)
+          return { image: null, inputTokens: 0, outputTokens: 0 }
         }
-
-        const parts = candidates[0]?.content?.parts
-        const imagePart = parts?.find((p) => p.inlineData)
-
-        if (imagePart?.inlineData) {
-          return {
-            id: crypto.randomUUID(),
-            dataUrl: `data:${imagePart.inlineData.mimeType || 'image/png'};base64,${imagePart.inlineData.data}`,
-            prompt,
-            timestamp: Date.now() + index,
-          } as GeneratedImageData
-        }
-
-        return null
-      } catch (error: unknown) {
-        console.error(`画像生成エラー (${index + 1}/${count}):`, error)
-        return null
-      }
-    })
+      },
+    )
 
     const results = await Promise.all(requests)
-    const validResults = results.filter(
-      (r): r is GeneratedImageData => r !== null,
+
+    // トークン数を集計（並列処理完了後に安全に集計）
+    const totalInputTokens = results.reduce((sum, r) => sum + r.inputTokens, 0)
+    const totalOutputTokens = results.reduce(
+      (sum, r) => sum + r.outputTokens,
+      0,
     )
+
+    const validResults = results
+      .map((r) => r.image)
+      .filter((img): img is GeneratedImageData => img !== null)
 
     if (validResults.length === 0) {
       throw new Error('画像の生成に失敗しました')
     }
+
+    // API利用ログを記録（fire-and-forget）
+    // cost-calculator.ts の統一料金定義を使用
+    const costUsd = calculateTokenCost(
+      MODEL_NAME,
+      totalInputTokens,
+      totalOutputTokens,
+    )
+    const exchangeRate = await getExchangeRate()
+    logApiUsage({
+      operation: 'image_generation',
+      model: MODEL_NAME,
+      inputTokens: totalInputTokens,
+      outputTokens: totalOutputTokens,
+      costUsd,
+      costJpy: costUsd * exchangeRate,
+      exchangeRate,
+      metadata: {
+        promptLength: prompt.length,
+        requestedCount: count,
+        generatedCount: validResults.length,
+        originalImageSize: originalImage.size,
+      },
+    })
 
     return validResults
   } catch (error) {

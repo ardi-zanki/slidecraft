@@ -7,21 +7,16 @@
 
 import { GoogleGenAI } from '@google/genai'
 import * as z from 'zod'
-import { getExchangeRate } from './cost-calculator'
+import { logApiUsage } from './api-usage-logger'
+import { calculateTokenCost, getExchangeRate } from './cost-calculator'
 import { SlideAnalysisSchema, type SlideAnalysis } from './slide-analysis'
-
-// モデルごとの料金（per million tokens, USD）
-const MODEL_PRICING: Record<string, { input: number; output: number }> = {
-  'gemini-2.5-flash': { input: 0.15, output: 0.6 },
-  'gemini-3-pro-preview': { input: 2, output: 12 },
-}
 
 // 利用可能なモデル
 export const ANALYSIS_MODELS = {
   'gemini-3-pro-preview': {
     id: 'gemini-3-pro-preview',
     name: 'Gemini 3 Pro',
-    estimatedCostJpy: 3, // 概算コスト（円、実際はトークン数で変動）
+    estimatedCostJpy: 8, // 概算コスト（円、実際はトークン数で変動）
   },
   'gemini-2.5-flash': {
     id: 'gemini-2.5-flash',
@@ -36,16 +31,14 @@ export const DEFAULT_MODEL: AnalysisModelId = 'gemini-3-pro-preview'
 
 /**
  * トークン数からコストを計算（USD）
+ * cost-calculator.ts の統一料金定義を使用
  */
 export function calculateCost(
   model: AnalysisModelId,
   inputTokens: number,
   outputTokens: number,
 ): number {
-  const pricing = MODEL_PRICING[model] ?? { input: 0.15, output: 0.6 }
-  const inputCost = (inputTokens / 1_000_000) * pricing.input
-  const outputCost = (outputTokens / 1_000_000) * pricing.output
-  return inputCost + outputCost
+  return calculateTokenCost(model, inputTokens, outputTokens)
 }
 
 /**
@@ -260,6 +253,30 @@ export async function analyzeSlide(
       const cost = calculateCost(model, inputTokens, outputTokens)
       const exchangeRate = await getExchangeRate()
       const costJpy = cost * exchangeRate
+
+      // API利用ログを記録（fire-and-forget）
+      const roleBreakdown = analysis.textElements.reduce(
+        (acc, el) => {
+          acc[el.role] = (acc[el.role] ?? 0) + 1
+          return acc
+        },
+        {} as Record<string, number>,
+      )
+      logApiUsage({
+        operation: 'slide_analysis',
+        model,
+        inputTokens,
+        outputTokens,
+        costUsd: cost,
+        costJpy,
+        exchangeRate,
+        metadata: {
+          imageSize: imageBlob.size,
+          textElementCount: analysis.textElements.length,
+          graphicRegionCount: analysis.graphicRegions.length,
+          roleBreakdown,
+        },
+      })
 
       return {
         analysis,
