@@ -78,6 +78,23 @@ export function trackPdfExported(pageCount: number) {
   })
 }
 
+// PPTX Export events
+export function trackPptxExportClick() {
+  trackEvent('pptx_export_click')
+}
+
+export function trackPptxExportAnalyzeComplete(model: string) {
+  trackEvent('pptx_export_analyze_complete', {
+    model,
+  })
+}
+
+export function trackPptxExportDownload(model: string) {
+  trackEvent('pptx_export_download', {
+    model,
+  })
+}
+
 // API Key events
 export function trackApiKeySet() {
   trackEvent('api_key_set')

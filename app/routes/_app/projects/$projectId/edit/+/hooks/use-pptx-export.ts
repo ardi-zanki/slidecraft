@@ -1,4 +1,8 @@
 import { useCallback, useRef, useState } from 'react'
+import {
+  trackPptxExportAnalyzeComplete,
+  trackPptxExportDownload,
+} from '~/lib/analytics'
 import { getApiKey } from '~/lib/api-settings.client'
 import { extractAllGraphicRegions } from '~/lib/graphic-extractor.client'
 import {
@@ -110,6 +114,7 @@ export function usePptxExport({
 
       setPptxResult(pptx)
       setState('ready')
+      trackPptxExportAnalyzeComplete(selectedModel)
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') {
         return
@@ -128,8 +133,9 @@ export function usePptxExport({
   const handleDownload = useCallback(() => {
     if (pptxResult) {
       downloadPptx(pptxResult)
+      trackPptxExportDownload(selectedModel)
     }
-  }, [pptxResult])
+  }, [pptxResult, selectedModel])
 
   const isProcessing = state !== 'idle' && state !== 'ready'
 

@@ -1,6 +1,7 @@
 import { FileSpreadsheet } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
+import { trackPptxExportClick } from '~/lib/analytics'
 import { ApiKeyDialog } from '~/components/api-key-dialog'
 import { Button } from '~/components/ui/button'
 import { loadCurrentSlideImage } from '~/lib/slides-repository.client'
@@ -94,6 +95,7 @@ export function ControlPanel({
   const [currentSlideBlob, setCurrentSlideBlob] = useState<Blob | null>(null)
 
   const handleOpenPptxDialog = useCallback(async () => {
+    trackPptxExportClick()
     try {
       const blob = await loadCurrentSlideImage(projectId, slide)
       setCurrentSlideBlob(blob)
