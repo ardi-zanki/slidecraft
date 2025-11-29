@@ -66,9 +66,9 @@ app/lib/graphic-extractor.client.tsはグラフィック領域の切り出し処
 
 app/lib/pptx-generator.client.tsはPPTX生成処理である。SlideAnalysisと切り出したグラフィック画像からPPTXを生成する。slide-extractorのgenerator.tsをブラウザ向けに移植する。
 
-app/routes/_app/projects/$projectId/edit/+/components/pptx-export-dialog.tsxはエクスポート用のダイアログコンポーネントである。デザインポリシーに従いDialogを使用する。
+app/routes/\_app/projects/$projectId/edit/+/components/pptx-export-dialog.tsxはエクスポート用のダイアログコンポーネントである。デザインポリシーに従いDialogを使用する。
 
-既存ファイルの修正箇所は1つである。app/routes/_app/projects/$projectId/edit/+/editor-actions.tsxにPPTXエクスポートボタンを追加し、ダイアログを開くトリガーとする。
+既存ファイルの修正箇所は1つである。app/routes/\_app/projects/$projectId/edit/+/editor-actions.tsxにPPTXエクスポートボタンを追加し、ダイアログを開くトリガーとする。
 
 ## 座標変換
 

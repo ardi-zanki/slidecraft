@@ -18,9 +18,9 @@
 
 PPTX生成処理として、app/lib/pptx-generator.client.tsを作成する。slide-extractorのgenerator.tsをブラウザ向けに移植する。パーセンテージ座標からインチ座標への変換、フォント選択ロジック（フォールバック含む）、フォントサイズスケーリングを実装する。画像サイズ取得にはImageオブジェクトを使用する。
 
-ダイアログコンポーネントとして、app/routes/_app/projects/$projectId/edit/+/components/pptx-export-dialog.tsxを作成する。初期状態、解析中状態、完了状態の3つの状態を持つ。モデル選択ドロップダウン（コスト表示付き）、解析開始ボタン、PPTXダウンロードボタンを配置する。完了状態ではテキスト要素を青色、グラフィック領域を緑色の半透明矩形でオーバーレイ表示する。ダイアログクローズ時のキャンセル処理を実装する。
+ダイアログコンポーネントとして、app/routes/\_app/projects/$projectId/edit/+/components/pptx-export-dialog.tsxを作成する。初期状態、解析中状態、完了状態の3つの状態を持つ。モデル選択ドロップダウン（コスト表示付き）、解析開始ボタン、PPTXダウンロードボタンを配置する。完了状態ではテキスト要素を青色、グラフィック領域を緑色の半透明矩形でオーバーレイ表示する。ダイアログクローズ時のキャンセル処理を実装する。
 
-既存ファイルの修正として、app/routes/_app/projects/$projectId/edit/+/editor-actions.tsxにPPTXエクスポートボタンを追加する。
+既存ファイルの修正として、app/routes/\_app/projects/$projectId/edit/+/editor-actions.tsxにPPTXエクスポートボタンを追加する。
 
 ## 作業手順
 
@@ -34,9 +34,9 @@ app/lib/graphic-extractor.client.tsを作成し、Canvas APIによる画像切�
 
 app/lib/pptx-generator.client.tsを作成し、PptxGenJSによるPPTX生成を実装する。
 
-app/routes/_app/projects/$projectId/edit/+/components/pptx-export-dialog.tsxを作成し、エクスポートダイアログを実装する。
+app/routes/\_app/projects/$projectId/edit/+/components/pptx-export-dialog.tsxを作成し、エクスポートダイアログを実装する。
 
-app/routes/_app/projects/$projectId/edit/+/editor-actions.tsxを修正し、PPTXエクスポートボタンを追加する。
+app/routes/\_app/projects/$projectId/edit/+/editor-actions.tsxを修正し、PPTXエクスポートボタンを追加する。
 
 ## 範囲外
 

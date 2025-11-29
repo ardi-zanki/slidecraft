@@ -71,7 +71,11 @@ export default function Editor({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <EditorActions projectId={projectId} slides={slides} />
+      <EditorActions
+        projectId={projectId}
+        slides={slides}
+        selectedSlide={slides[selectedIndex]}
+      />
       <ResizablePanelGroup
         direction="horizontal"
         className="flex-1 overflow-hidden"
