@@ -50,11 +50,11 @@ export function getModelPricing(model: string): {
  * トークン数からコストを計算（USD）
  */
 export function calculateTokenCost(
-  model: string,
+  model: ModelId,
   inputTokens: number,
   outputTokens: number,
 ): number {
-  const pricing = getModelPricing(model)
+  const pricing = MODEL_PRICING[model]
   const inputCost = (inputTokens / 1_000_000) * pricing.input
   const outputCost = (outputTokens / 1_000_000) * pricing.output
   return inputCost + outputCost

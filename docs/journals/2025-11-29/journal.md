@@ -924,9 +924,14 @@ Gemini 3 Pro解析の目安コストを3円から8円に更新（実測値に基
 
 `api-usage-log-schema.ts`から未使用の`ApiUsageLogInput`型exportを削除。
 
+**型安全性の向上**
+
+`gemini-api.client.ts`の`MODEL_NAME`に`as const`を追加し、リテラル型として扱うよう変更。`cost-calculator.ts`の`calculateTokenCost`関数の引数を`string`から`ModelId`型に変更し、未定義モデルを渡すとコンパイルエラーになるようにした。
+
 ### 成果物
 
-- `app/lib/gemini-api.client.ts` - トークン集計の競合状態修正
+- `app/lib/gemini-api.client.ts` - トークン集計の競合状態修正、MODEL_NAMEの型安全化
+- `app/lib/cost-calculator.ts` - calculateTokenCostの引数をModelId型に変更
 - `app/lib/rate-limiter.ts` - 本番環境での必須化
 - `app/lib/rate-limiter.test.ts` - テスト追加
 - `app/routes/api/usage-log/index.tsx` - Retry-Afterヘッダー、エラーログコンテキスト

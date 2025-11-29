@@ -40,7 +40,7 @@ export interface GeneratedImageData {
   timestamp: number
 }
 
-const MODEL_NAME = 'gemini-3-pro-image-preview'
+const MODEL_NAME = 'gemini-3-pro-image-preview' as const
 
 /**
  * スライドのバリエーションを生成
