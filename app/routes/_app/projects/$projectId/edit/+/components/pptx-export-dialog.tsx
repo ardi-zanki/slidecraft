@@ -1,5 +1,5 @@
 import { AlertCircle, Download, FileSpreadsheet, Loader2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Button } from '~/components/ui/button'
 import {
   Dialog,
@@ -46,13 +46,24 @@ export function PptxExportDialog({
     setSelectedModel,
     handleAnalyze,
     handleDownload,
+    reset,
   } = usePptxExport({
     imageBlob,
     projectName,
     slideNumber,
-    open,
     onApiKeyRequired,
   })
+
+  // ダイアログを閉じるときにリセット
+  const handleOpenChange = useCallback(
+    (newOpen: boolean) => {
+      if (!newOpen) {
+        reset()
+      }
+      onOpenChange(newOpen)
+    },
+    [reset, onOpenChange],
+  )
 
   // 画像のData URLを生成（プレビュー用）
   useEffect(() => {
@@ -70,7 +81,7 @@ export function PptxExportDialog({
   }, [imageBlob, open])
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>
@@ -218,7 +229,7 @@ export function PptxExportDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => handleOpenChange(false)}>
             閉じる
           </Button>
 

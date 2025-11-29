@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { getApiKey } from '~/lib/api-settings.client'
 import { extractAllGraphicRegions } from '~/lib/graphic-extractor.client'
 import {
@@ -20,7 +20,6 @@ interface UsePptxExportOptions {
   imageBlob: Blob | null
   projectName: string
   slideNumber: number
-  open: boolean
   onApiKeyRequired: () => void
 }
 
@@ -28,7 +27,6 @@ export function usePptxExport({
   imageBlob,
   projectName,
   slideNumber,
-  open,
   onApiKeyRequired,
 }: UsePptxExportOptions) {
   const [state, setState] = useState<ExportState>('idle')
@@ -41,21 +39,21 @@ export function usePptxExport({
   const [usage, setUsage] = useState<UsageInfo | null>(null)
 
   const abortControllerRef = useRef<AbortController | null>(null)
+  const isActiveRef = useRef(true)
 
-  // ダイアログが閉じられたときのクリーンアップ
-  useEffect(() => {
-    if (!open) {
-      abortControllerRef.current?.abort()
-      abortControllerRef.current = null
+  // ダイアログを閉じるときに呼び出すリセット関数
+  const reset = useCallback(() => {
+    isActiveRef.current = false
+    abortControllerRef.current?.abort()
+    abortControllerRef.current = null
 
-      setState('idle')
-      setError(null)
-      setAnalysis(null)
-      setGraphics([])
-      setPptxResult(null)
-      setUsage(null)
-    }
-  }, [open])
+    setState('idle')
+    setError(null)
+    setAnalysis(null)
+    setGraphics([])
+    setPptxResult(null)
+    setUsage(null)
+  }, [])
 
   const handleAnalyze = useCallback(async () => {
     const apiKey = getApiKey()
@@ -72,6 +70,7 @@ export function usePptxExport({
     setError(null)
     setState('analyzing')
 
+    isActiveRef.current = true
     abortControllerRef.current = new AbortController()
 
     try {
@@ -83,6 +82,8 @@ export function usePptxExport({
         signal: abortControllerRef.current.signal,
       })
 
+      if (!isActiveRef.current) return
+
       setAnalysis(result.analysis)
       setUsage(result.usage)
 
@@ -92,6 +93,9 @@ export function usePptxExport({
         imageBlob,
         result.analysis.graphicRegions,
       )
+
+      if (!isActiveRef.current) return
+
       setGraphics(extractedGraphics)
 
       // PPTX生成
@@ -101,14 +105,17 @@ export function usePptxExport({
         graphics: extractedGraphics,
         fileName: `${projectName}_${slideNumber}.pptx`,
       })
-      setPptxResult(pptx)
 
+      if (!isActiveRef.current) return
+
+      setPptxResult(pptx)
       setState('ready')
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') {
-        setState('idle')
         return
       }
+
+      if (!isActiveRef.current) return
 
       console.error('PPTXエクスポートエラー:', err)
       setError(
@@ -141,5 +148,6 @@ export function usePptxExport({
     setSelectedModel,
     handleAnalyze,
     handleDownload,
+    reset,
   }
 }
