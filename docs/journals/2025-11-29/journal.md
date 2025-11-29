@@ -559,3 +559,123 @@ Canvasメモリ使用量の制限がないため、大きな画像でメモリ�
 ### 成果物
 
 - `app/lib/graphic-extractor.client.ts` - MAX_CANVAS_DIMENSION定数と最大サイズチェックを追加
+
+---
+
+## useEffectガイドライン準拠とイベントハンドラパターンへの移行
+
+### ユーザー指示
+
+useEffectのガイドラインにしたがってる？
+
+### ユーザー意図
+
+CLAUDE.mdのuseEffectポリシー「Avoid: responding to flags」に違反していないか確認したい。
+
+### 作業内容
+
+当初の実装では`use-pptx-export.ts`にuseEffectがあり、`open`フラグの変化に応じて状態をリセットしていた。
+
+```typescript
+// Before: フラグに反応するuseEffect（ガイドライン違反）
+useEffect(() => {
+  if (!open) {
+    abortControllerRef.current?.abort()
+    setState('idle')
+    setError(null)
+    // ...
+  }
+}, [open])
+```
+
+CLAUDE.mdのガイドラインでは「useEffectは外部システムとの同期のみに使用。フラグへの反応は避ける」と規定されている。ダイアログの開閉は外部システムではなく、UIの状態変化なのでuseEffectは不適切。
+
+イベントハンドラパターンにリファクタリングした。
+
+1. **hookから`open`プロパティを削除**: hookはダイアログの開閉状態を知る必要がない
+2. **`reset`関数をhookに追加**: 状態リセットのロジックを外部から呼び出し可能に
+3. **ダイアログで`handleOpenChange`ラッパーを作成**: 閉じるときに`reset()`を呼び出す
+4. **`isActiveRef`で非同期処理のガード**: ダイアログが閉じられた後の setState 呼び出しを防止
+
+```typescript
+// After: イベントハンドラでリセット
+const reset = useCallback(() => {
+  isActiveRef.current = false
+  abortControllerRef.current?.abort()
+  setState('idle')
+  setError(null)
+  setAnalysis(null)
+  setGraphics([])
+  setPptxResult(null)
+  setUsage(null)
+}, [])
+
+// ダイアログ側
+const handleOpenChange = useCallback(
+  (newOpen: boolean) => {
+    if (!newOpen) {
+      reset()
+    }
+    onOpenChange(newOpen)
+  },
+  [reset, onOpenChange],
+)
+```
+
+非同期処理の各ステップ後に`isActiveRef.current`をチェックし、ダイアログが閉じられていたら処理を中断するようにした。これにより、閉じた後にsetStateが呼ばれてワーニングが出る問題も解消。
+
+### 成果物
+
+- `app/routes/_app/projects/$projectId/edit/+/hooks/use-pptx-export.ts` - useEffect削除、reset関数追加、isActiveRefによるガード
+- `app/routes/_app/projects/$projectId/edit/+/components/pptx-export-dialog.tsx` - handleOpenChangeラッパー追加
+
+### 教訓
+
+useEffectでUIの状態変化（フラグ）に反応するのは典型的なアンチパターン。イベントハンドラで直接処理するほうがデータフローが明確で、デバッグも容易。非同期処理中にコンポーネントがアンマウントされる場合は、refでアクティブ状態を追跡する。
+
+---
+
+## 解析完了後の再解析機能追加
+
+### ユーザー指示
+
+解析が終わったあとでもう一度モデルを変えたりして解析しなおしたいときがあるよ。
+
+### ユーザー意図
+
+一度解析が完了した後でも、別のモデルで再解析できるようにしたい。
+
+### 作業内容
+
+従来の実装では、解析が完了すると`state === 'ready'`となり、モデル選択ボタンが無効化されてダウンロードのみ可能だった。
+
+2つの変更を実施した。
+
+1. **モデル選択ボタンの無効化条件を変更**: `disabled={isProcessing || state === 'ready'}`から`disabled={isProcessing}`に変更。解析完了後もモデルを変更可能に。
+
+2. **再解析ボタンの追加**: `state === 'ready'`のときに「再解析」ボタンを表示。
+
+```tsx
+{
+  state === 'ready' && (
+    <>
+      <Button variant="outline" onClick={handleAnalyze}>
+        <FileSpreadsheet className="mr-2 h-4 w-4" />
+        再解析
+      </Button>
+      {pptxResult && (
+        <Button onClick={handleDownload}>
+          <Download className="mr-2 h-4 w-4" />
+          PPTXダウンロード
+        </Button>
+      )}
+    </>
+  )
+}
+```
+
+これにより、ユーザーは解析結果を確認した後、別のモデルで再解析することが可能になった。Gemini 2.5 Flashで試してから、より高精度なGemini 3 Proで再解析するというワークフローをサポート。
+
+### 成果物
+
+- `app/routes/_app/projects/$projectId/edit/+/components/pptx-export-dialog.tsx` - モデルボタンの無効化条件変更、再解析ボタン追加

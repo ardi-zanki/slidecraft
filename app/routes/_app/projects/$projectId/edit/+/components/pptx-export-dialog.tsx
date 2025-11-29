@@ -108,7 +108,7 @@ export function PptxExportDialog({
                   variant={selectedModel === id ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setSelectedModel(id as AnalysisModelId)}
-                  disabled={isProcessing || state === 'ready'}
+                  disabled={isProcessing}
                 >
                   {model.name}
                   <span className="ml-1 text-xs opacity-70">
@@ -240,11 +240,19 @@ export function PptxExportDialog({
             </Button>
           )}
 
-          {state === 'ready' && pptxResult && (
-            <Button onClick={handleDownload}>
-              <Download className="mr-2 h-4 w-4" />
-              PPTXダウンロード
-            </Button>
+          {state === 'ready' && (
+            <>
+              <Button variant="outline" onClick={handleAnalyze}>
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                再解析
+              </Button>
+              {pptxResult && (
+                <Button onClick={handleDownload}>
+                  <Download className="mr-2 h-4 w-4" />
+                  PPTXダウンロード
+                </Button>
+              )}
+            </>
           )}
         </DialogFooter>
       </DialogContent>
