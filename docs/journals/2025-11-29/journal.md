@@ -394,3 +394,36 @@ PDF生成時にjsPDFの`addImage`で`'PNG'`形式を使用していたことが�
 ### 成果物
 
 - `app/lib/pdf-generator.client.ts` - JPEG圧縮によるPDFサイズ削減
+
+---
+
+## ヘッダーレイアウトとボタンスタイルの統一
+
+### ユーザー指示
+
+サイドバートリガーのあるところが正方形じゃないし、アイコンが真ん中より左にちょっとよってて気持ち悪いから治したい。ヘッダーをgridにしたら？PDF書き出し、修正案を生成ボタン、PPTXエクスポートボタンのスタイルどうしたらいいだろう。統一感なくて。
+
+### ユーザー意図
+
+ヘッダーのレイアウトを整理し、SidebarTriggerの配置を正確にしたい。また、アクションボタンのスタイルを統一して視覚的な一貫性を確保したい。
+
+### 作業内容
+
+まずSidebarTriggerの問題を調査した。`_layout.tsx`に`-ml-1 scale-125 sm:scale-100`、`header.tsx`に`scale-125 sm:scale-100`が設定されており、これらがアイコンの位置ずれと非正方形の原因だった。
+
+ヘッダーのレイアウトをflexからCSS Gridに変更した。`grid-cols-[auto_1fr_auto]`で3カラム構成とし、左にSidebarTrigger、中央にパンくずリスト、右にエディタアクション（PDF書き出しボタン等）を配置。Separatorコンポーネントを削除し、SidebarTriggerのコンテナに`border-r`を設定することでシンプルな境界線を実現した。
+
+ヘッダーの高さを`h-12`（48px）から`h-10`（40px）に縮小し、コンパクトな見た目にした。
+
+ボタンスタイルの統一方針を検討し、以下に決定した。
+
+- メインアクション（修正案を生成）: primary（黒背景）
+- サブアクション（PDF書き出し、PPTXエクスポート）: outline（白背景・枠線）
+
+PPTXエクスポートボタンに`variant="outline"`を追加した。PDF書き出しボタンは既にoutlineだったため変更なし。
+
+### 成果物
+
+- `app/routes/_app/_layout.tsx` - CSS Gridレイアウト、Separator削除、高さ縮小
+- `app/components/layout/header.tsx` - scale-125削除
+- `app/routes/_app/projects/$projectId/edit/+/control-panel.tsx` - PPTXボタンをoutlineに変更
