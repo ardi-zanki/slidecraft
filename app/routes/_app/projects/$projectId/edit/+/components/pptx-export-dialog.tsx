@@ -12,7 +12,6 @@ import {
 import {
   ANALYSIS_MODELS,
   type AnalysisModelId,
-  usdToJpy,
 } from '~/lib/slide-analyzer.client'
 import { usePptxExport } from '../hooks/use-pptx-export'
 
@@ -197,7 +196,7 @@ export function PptxExportDialog({
                       <span className="font-medium text-slate-600">
                         コスト:
                       </span>{' '}
-                      ¥{usdToJpy(usage.cost).toFixed(2)}
+                      ¥{usage.costJpy.toFixed(2)}
                     </div>
                   </>
                 )}

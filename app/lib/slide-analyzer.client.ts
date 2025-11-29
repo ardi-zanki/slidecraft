@@ -6,22 +6,13 @@
  */
 
 import { GoogleGenAI } from '@google/genai'
+import { getExchangeRate } from './cost-calculator'
 import { SlideAnalysisSchema, type SlideAnalysis } from './slide-analysis'
-
-// 為替レート（USD → JPY）
-const USD_TO_JPY = 150
 
 // モデルごとの料金（per million tokens, USD）
 const MODEL_PRICING: Record<string, { input: number; output: number }> = {
   'gemini-2.5-flash': { input: 0.15, output: 0.6 },
   'gemini-3-pro-preview': { input: 2, output: 12 },
-}
-
-/**
- * USDを円に変換
- */
-export function usdToJpy(usd: number): number {
-  return usd * USD_TO_JPY
 }
 
 // 利用可能なモデル
@@ -64,6 +55,7 @@ export interface UsageInfo {
   outputTokens: number
   totalTokens: number
   cost: number // USD
+  costJpy: number // 円換算
 }
 
 // システムプロンプト（slide-extractorから移植）
@@ -278,6 +270,8 @@ export async function analyzeSlide(
       const outputTokens = usageMetadata?.candidatesTokenCount ?? 0
       const totalTokens = usageMetadata?.totalTokenCount ?? 0
       const cost = calculateCost(model, inputTokens, outputTokens)
+      const exchangeRate = await getExchangeRate()
+      const costJpy = cost * exchangeRate
 
       return {
         analysis,
@@ -287,6 +281,7 @@ export async function analyzeSlide(
           outputTokens,
           totalTokens,
           cost,
+          costJpy,
         },
       }
     } catch (error) {
