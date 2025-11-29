@@ -427,3 +427,45 @@ PPTXエクスポートボタンに`variant="outline"`を追加した。PDF書き
 - `app/routes/_app/_layout.tsx` - CSS Gridレイアウト、Separator削除、高さ縮小
 - `app/components/layout/header.tsx` - scale-125削除
 - `app/routes/_app/projects/$projectId/edit/+/control-panel.tsx` - PPTXボタンをoutlineに変更
+
+---
+
+## PPTXエクスポート機能のコードレビュー対応
+
+### ユーザー指示
+
+PPTXエクスポート機能のコードレビュー指摘事項を順次修正。
+
+### ユーザー意図
+
+コードの品質、セキュリティ、パフォーマンス、アクセシビリティを向上させたい。
+
+### 作業内容
+
+以下のレビュー指摘に対応した。
+
+1. **為替レート動的取得**: `USD_TO_JPY = 150`のハードコーディングを削除し、`getExchangeRate()`で動的に取得するよう変更。`UsageInfo`に`costJpy`フィールドを追加。
+
+2. **Base64 Data URLバリデーション**: `extractBase64FromDataUrl`に`data:`プレフィックスチェックと分割結果の検証を追加。
+
+3. **JSONパース・Zodバリデーションの明示的エラーハンドリング**: `parseJsonResponse`で`JSON.parse`と`Zod.parse`を別々のtry-catchで囲み、エラーメッセージを区別。
+
+4. **URL.revokeObjectURLのタイミング修正**: `blobToDataUrl`でresolve呼び出し後にrevokeObjectURLを実行するよう順序を変更。
+
+5. **percentToPixelの冗長パラメータ削除**: `dimension`と`maxDimension`が常に同じ値だったため、引数を1つに統合。
+
+6. **逐次処理から並列処理へ**: `extractAllGraphicRegions`でforループを`Promise.all`に変更し、グラフィック切り出しを並列化。
+
+7. **遅延Data URL変換**: `ExtractedGraphic`から`dataUrl`フィールドを削除し、PPTX生成時にBlobからData URLへ変換するよう変更。メモリ効率が約33%向上。
+
+8. **型安全性の向上**: `pptx.write()`の戻り値を`as Blob`型アサーションから`instanceof Blob`型ガードに変更。
+
+9. **UIアクセシビリティ**: プレビューオーバーレイの要素に`role="img"`と`aria-label`を追加し、スクリーンリーダー対応を改善。
+
+### 成果物
+
+- `app/lib/slide-analyzer.client.ts` - 動的為替レート、明示的エラーハンドリング
+- `app/lib/pptx-generator.client.ts` - Data URLバリデーション、遅延変換、型ガード
+- `app/lib/graphic-extractor.client.ts` - URL解放タイミング修正、パラメータ簡略化、並列処理
+- `app/lib/slide-analysis.ts` - `dataUrl`フィールド削除
+- `app/routes/_app/projects/$projectId/edit/+/components/pptx-export-dialog.tsx` - アクセシビリティ属性追加

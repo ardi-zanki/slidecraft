@@ -125,6 +125,8 @@ export function PptxExportDialog({
                 {analysis.textElements.map((el) => (
                   <div
                     key={`text-${el.x}-${el.y}-${el.content.slice(0, 10)}`}
+                    role="img"
+                    aria-label={`テキスト要素: ${el.content}`}
                     className="absolute border-2 border-blue-500 bg-blue-500/20"
                     style={{
                       left: `${el.x}%`,
@@ -140,6 +142,8 @@ export function PptxExportDialog({
                 {analysis.graphicRegions.map((region) => (
                   <div
                     key={`graphic-${region.x}-${region.y}-${region.description.slice(0, 10)}`}
+                    role="img"
+                    aria-label={`グラフィック領域: ${region.description}`}
                     className="absolute border-2 border-emerald-500 bg-emerald-500/20"
                     style={{
                       left: `${region.x}%`,
