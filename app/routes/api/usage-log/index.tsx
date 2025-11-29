@@ -29,9 +29,12 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   try {
-    // セッションからユーザーIDを取得（認証されていなくてもログは記録）
+    // セッションからユーザーIDを取得（認証必須）
     const session = await auth.api.getSession({ headers: request.headers })
-    const userId = session?.user?.id ?? null
+    if (!session?.user?.id) {
+      return data({ error: 'Unauthorized' }, { status: 401 })
+    }
+    const userId = session.user.id
 
     const body = await request.json()
 
