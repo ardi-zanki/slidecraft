@@ -63,11 +63,24 @@ export async function checkRateLimit(
     }
   }
 
-  const result = await rateLimiter.limit(identifier)
-  return {
-    success: result.success,
-    limit: result.limit,
-    remaining: result.remaining,
-    reset: result.reset,
+  try {
+    const result = await rateLimiter.limit(identifier)
+    return {
+      success: result.success,
+      limit: result.limit,
+      remaining: result.remaining,
+      reset: result.reset,
+    }
+  } catch (error) {
+    // Redis障害時はfail-open（リクエストを許可）
+    console.error('Rate limit check failed, allowing request:', error, {
+      identifier,
+    })
+    return {
+      success: true,
+      limit: 0,
+      remaining: 0,
+      reset: 0,
+    }
   }
 }

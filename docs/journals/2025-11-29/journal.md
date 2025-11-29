@@ -928,11 +928,15 @@ Gemini 3 Pro解析の目安コストを3円から8円に更新（実測値に基
 
 `gemini-api.client.ts`の`MODEL_NAME`に`as const`を追加し、リテラル型として扱うよう変更。`cost-calculator.ts`の`calculateTokenCost`関数の引数を`string`から`ModelId`型に変更し、未定義モデルを渡すとコンパイルエラーになるようにした。
 
+**Redis障害時のfail-open対応**
+
+`rate-limiter.ts`の`checkRateLimit`関数でRedis障害時に例外が発生するとリクエストがブロックされる問題があった。try/catchで例外をキャッチし、エラーログを出力しつつ`success: true`を返すfail-open方式に変更した。レート制限が機能しなくなるリスクはあるが、Redis障害でサービス全体が停止するよりは望ましい。
+
 ### 成果物
 
 - `app/lib/gemini-api.client.ts` - トークン集計の競合状態修正、MODEL_NAMEの型安全化
 - `app/lib/cost-calculator.ts` - calculateTokenCostの引数をModelId型に変更
-- `app/lib/rate-limiter.ts` - 本番環境での必須化
+- `app/lib/rate-limiter.ts` - 本番環境での必須化、Redis障害時のfail-open
 - `app/lib/rate-limiter.test.ts` - テスト追加
 - `app/routes/api/usage-log/index.tsx` - Retry-Afterヘッダー、エラーログコンテキスト
 - `app/lib/api-usage-logger.ts` - JSDoc追加
