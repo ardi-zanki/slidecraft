@@ -7,7 +7,7 @@
 
 import { GoogleGenAI } from '@google/genai'
 import { logApiUsage } from './api-usage-logger'
-import { getExchangeRate } from './cost-calculator'
+import { calculateTokenCost, getExchangeRate } from './cost-calculator'
 
 /**
  * Data URLからBase64部分のみを抽出
@@ -150,10 +150,12 @@ export async function generateSlideVariations(
     }
 
     // API利用ログを記録（fire-and-forget）
-    // 画像生成モデルの料金: input $2.00/1M, output $12.00/1M (gemini-3-pro-image-preview)
-    const inputCost = (totalInputTokens / 1_000_000) * 2.0
-    const outputCost = (totalOutputTokens / 1_000_000) * 12.0
-    const costUsd = inputCost + outputCost
+    // cost-calculator.ts の統一料金定義を使用
+    const costUsd = calculateTokenCost(
+      MODEL_NAME,
+      totalInputTokens,
+      totalOutputTokens,
+    )
     getExchangeRate().then((exchangeRate) => {
       logApiUsage({
         operation: 'image_generation',

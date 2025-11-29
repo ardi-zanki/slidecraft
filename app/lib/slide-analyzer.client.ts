@@ -8,14 +8,8 @@
 import { GoogleGenAI } from '@google/genai'
 import * as z from 'zod'
 import { logApiUsage } from './api-usage-logger'
-import { getExchangeRate } from './cost-calculator'
+import { calculateTokenCost, getExchangeRate } from './cost-calculator'
 import { SlideAnalysisSchema, type SlideAnalysis } from './slide-analysis'
-
-// モデルごとの料金（per million tokens, USD）
-const MODEL_PRICING: Record<string, { input: number; output: number }> = {
-  'gemini-2.5-flash': { input: 0.15, output: 0.6 },
-  'gemini-3-pro-preview': { input: 2, output: 12 },
-}
 
 // 利用可能なモデル
 export const ANALYSIS_MODELS = {
@@ -37,16 +31,14 @@ export const DEFAULT_MODEL: AnalysisModelId = 'gemini-3-pro-preview'
 
 /**
  * トークン数からコストを計算（USD）
+ * cost-calculator.ts の統一料金定義を使用
  */
 export function calculateCost(
   model: AnalysisModelId,
   inputTokens: number,
   outputTokens: number,
 ): number {
-  const pricing = MODEL_PRICING[model] ?? { input: 0.15, output: 0.6 }
-  const inputCost = (inputTokens / 1_000_000) * pricing.input
-  const outputCost = (outputTokens / 1_000_000) * pricing.output
-  return inputCost + outputCost
+  return calculateTokenCost(model, inputTokens, outputTokens)
 }
 
 /**
