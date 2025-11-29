@@ -156,22 +156,21 @@ export async function generateSlideVariations(
       totalInputTokens,
       totalOutputTokens,
     )
-    getExchangeRate().then((exchangeRate) => {
-      logApiUsage({
-        operation: 'image_generation',
-        model: MODEL_NAME,
-        inputTokens: totalInputTokens,
-        outputTokens: totalOutputTokens,
-        costUsd,
-        costJpy: costUsd * exchangeRate,
-        exchangeRate,
-        metadata: {
-          promptLength: prompt.length,
-          requestedCount: count,
-          generatedCount: validResults.length,
-          originalImageSize: originalImage.size,
-        },
-      })
+    const exchangeRate = await getExchangeRate()
+    logApiUsage({
+      operation: 'image_generation',
+      model: MODEL_NAME,
+      inputTokens: totalInputTokens,
+      outputTokens: totalOutputTokens,
+      costUsd,
+      costJpy: costUsd * exchangeRate,
+      exchangeRate,
+      metadata: {
+        promptLength: prompt.length,
+        requestedCount: count,
+        generatedCount: validResults.length,
+        originalImageSize: originalImage.size,
+      },
     })
 
     return validResults
