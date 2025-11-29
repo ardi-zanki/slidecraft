@@ -11,6 +11,9 @@ import type {
   ImageDimensions,
 } from './slide-analysis'
 
+// Canvas最大サイズ（ブラウザ制限とメモリ効率のバランス）
+const MAX_CANVAS_DIMENSION = 4096
+
 /**
  * BlobからImageDimensionsを取得
  */
@@ -110,6 +113,13 @@ export async function extractGraphicRegion(
   // 最小サイズチェック
   if (width < 1 || height < 1) {
     throw new Error('切り出し領域が小さすぎます')
+  }
+
+  // 最大サイズチェック（メモリ保護）
+  if (width > MAX_CANVAS_DIMENSION || height > MAX_CANVAS_DIMENSION) {
+    throw new Error(
+      `切り出し領域が大きすぎます（最大${MAX_CANVAS_DIMENSION}px）`,
+    )
   }
 
   // Canvasで切り出し

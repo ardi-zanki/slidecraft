@@ -539,3 +539,23 @@ Gemini APIの構造化出力機能を実装した。従来はLLMがmarkdownブ�
 - `app/lib/slide-analysis.ts` - fontSizeの説明を修正
 - `app/lib/slide-analyzer.client.ts` - 構造化出力対応、システムプロンプト簡素化
 - `app/lib/pptx-generator.client.ts` - scaleFactor を1.2から1.0に変更
+
+---
+
+## Canvas最大サイズ制限の追加
+
+### ユーザー指示
+
+Canvasメモリ使用量の制限がないため、大きな画像でメモリ問題が発生する可能性があるとのレビュー指摘。
+
+### ユーザー意図
+
+大きな画像やグラフィック領域が多い場合のメモリ保護を実装したい。
+
+### 作業内容
+
+`graphic-extractor.client.ts`にCanvas最大サイズ制限を追加。`MAX_CANVAS_DIMENSION = 4096`を定義し、切り出し領域がこのサイズを超える場合はエラーを投げるようにした。ブラウザのCanvas制限（通常4096〜16384px）とメモリ効率のバランスを考慮した値を採用。
+
+### 成果物
+
+- `app/lib/graphic-extractor.client.ts` - MAX_CANVAS_DIMENSION定数と最大サイズチェックを追加
