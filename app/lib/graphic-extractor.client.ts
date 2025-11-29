@@ -77,14 +77,10 @@ function blobToDataUrl(blob: Blob): Promise<string> {
 /**
  * パーセンテージ座標からピクセル座標に変換（境界チェック付き）
  */
-function percentToPixel(
-  percent: number,
-  dimension: number,
-  maxDimension: number,
-): number {
+function percentToPixel(percent: number, dimension: number): number {
   const pixel = Math.round((percent / 100) * dimension)
   // 境界チェック
-  return Math.max(0, Math.min(pixel, maxDimension))
+  return Math.max(0, Math.min(pixel, dimension))
 }
 
 /**
@@ -98,14 +94,10 @@ export async function extractGraphicRegion(
   const img = await createImageFromBlob(imageBlob)
 
   // パーセンテージからピクセル座標に変換
-  const x = percentToPixel(region.x, dimensions.width, dimensions.width)
-  const y = percentToPixel(region.y, dimensions.height, dimensions.height)
-  let width = percentToPixel(region.width, dimensions.width, dimensions.width)
-  let height = percentToPixel(
-    region.height,
-    dimensions.height,
-    dimensions.height,
-  )
+  const x = percentToPixel(region.x, dimensions.width)
+  const y = percentToPixel(region.y, dimensions.height)
+  let width = percentToPixel(region.width, dimensions.width)
+  let height = percentToPixel(region.height, dimensions.height)
 
   // 境界を超えないように調整
   if (x + width > dimensions.width) {
