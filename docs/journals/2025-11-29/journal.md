@@ -330,3 +330,36 @@ PPTXエクスポートボタンをEditorActions（ヘッダー）からControlPa
 
 - `app/routes/_app/projects/$projectId/edit/+/control-panel.tsx` - PPTXエクスポートセクション追加、下部固定レイアウト
 - `app/routes/_app/projects/$projectId/edit/+/editor-actions.tsx` - PDFボタンを`variant="outline"`に変更
+
+---
+
+## エディタ背景色の統一
+
+### ユーザー指示
+
+スライド一覧とプレビュー領域の背景色が違うのが気になる。シンプルに統一したい。
+
+### ユーザー意図
+
+コンテンツ表示エリアの背景色を統一して視覚的な一貫性を確保したい。
+
+### 作業内容
+
+当初の状態：
+- Sidebar: `bg-slate-100`
+- MainPreview外側: `bg-slate-50`
+- ImageCanvas: `bg-slate-100/50`（50%透過）
+
+ImageCanvasの`bg-slate-100/50`がMainPreviewの`bg-slate-50`と重なって濃く見えていた。透過の重ね塗りは複雑なので、シンプルに透過なしで統一する方針を採用。
+
+変更後：
+- Sidebar: `bg-slate-100`
+- MainPreview外側: 背景なし（削除）
+- ImageCanvas: `bg-slate-100`（透過なし）
+- ControlPanel: `bg-white`（操作UIなので白のまま維持）
+
+### 成果物
+
+- `app/routes/_app/projects/$projectId/edit/+/sidebar.tsx` - `bg-slate-100`に変更
+- `app/routes/_app/projects/$projectId/edit/+/main-preview.tsx` - 背景色削除
+- `app/routes/_app/projects/$projectId/edit/+/components/image-canvas.tsx` - `bg-slate-100`に変更（透過なし）
