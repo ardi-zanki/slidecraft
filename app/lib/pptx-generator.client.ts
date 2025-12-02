@@ -20,6 +20,12 @@ import type {
 const SLIDE_WIDTH = 10
 const SLIDE_HEIGHT = 5.625
 
+// インデント1レベルあたりのオフセット（%）- PowerPointの標準箇条書きインデントに相当
+const INDENT_OFFSET_PCT = 3
+
+// シェイプ内テキストのデフォルトサイズ比率 - シェイプ高さに対する割合（視認性と余白のバランス）
+const DEFAULT_SHAPE_TEXT_SIZE_RATIO = 0.6
+
 /**
  * パーセンテージをインチに変換
  */
@@ -130,7 +136,7 @@ function addShapeElements(
       if (shape.fontSize) {
         textOptions.fontSize = fontSizePctToPt(shape.fontSize)
       } else {
-        textOptions.fontSize = fontSizePctToPt(shape.height * 0.6)
+        textOptions.fontSize = fontSizePctToPt(shape.height * DEFAULT_SHAPE_TEXT_SIZE_RATIO)
       }
 
       // テキスト色
@@ -424,7 +430,7 @@ export async function generatePptx(
 
     // インデントレベルに応じてx座標をオフセット（1レベルあたり3%）
     // 幅が負にならないよう最小値を保証し、スライド範囲内に収める
-    const indentOffset = (textEl.indentLevel ?? 0) * 3
+    const indentOffset = (textEl.indentLevel ?? 0) * INDENT_OFFSET_PCT
     const minWidthPct = 1
     const finalWidthPct = Math.max(textEl.width - indentOffset, minWidthPct)
     const xPct = Math.min(textEl.x + indentOffset, 100 - finalWidthPct)
