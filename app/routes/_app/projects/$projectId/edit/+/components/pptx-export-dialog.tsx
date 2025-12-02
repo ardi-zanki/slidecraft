@@ -222,9 +222,7 @@ export function PptxExportDialog({
             <div className="rounded-lg bg-slate-50 p-3 text-sm">
               <div className="flex flex-wrap gap-x-4 gap-y-1">
                 <div>
-                  <span className="font-medium text-blue-600">
-                    テキスト:
-                  </span>{' '}
+                  <span className="font-medium text-blue-600">テキスト:</span>{' '}
                   {analysis.textElements.length}
                 </div>
                 {(analysis.shapeElements?.length ?? 0) > 0 && (
