@@ -11,17 +11,12 @@ import { logApiUsage } from './api-usage-logger'
 import { calculateTokenCost, getExchangeRate } from './cost-calculator'
 import { SlideAnalysisSchema, type SlideAnalysis } from './slide-analysis'
 
-// 利用可能なモデル
+// 利用可能なモデル（Gemini 3 Proのみ - 精度重視）
 export const ANALYSIS_MODELS = {
   'gemini-3-pro-preview': {
     id: 'gemini-3-pro-preview',
     name: 'Gemini 3 Pro',
     estimatedCostJpy: 6, // 概算コスト（円、実際はトークン数で変動）
-  },
-  'gemini-2.5-flash': {
-    id: 'gemini-2.5-flash',
-    name: 'Gemini 2.5 Flash',
-    estimatedCostJpy: 1.5, // 概算コスト（円、実際はトークン数で変動）
   },
 } as const
 
