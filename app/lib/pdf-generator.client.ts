@@ -7,8 +7,21 @@
  * 注: jsPDFは大きなライブラリ（canvg, html2canvasを含む）のため、動的importで遅延ロードする。
  */
 
+import type { jsPDF as JsPDFType } from 'jspdf'
 import { loadCurrentSlideImage } from './slides-repository.client'
 import type { Slide } from './types'
+
+// jsPDFを動的にロードしてキャッシュ
+let jsPDFCache: typeof JsPDFType | null = null
+
+async function getJsPDF(): Promise<typeof JsPDFType> {
+  if (jsPDFCache) {
+    return jsPDFCache
+  }
+  const { jsPDF } = await import('jspdf')
+  jsPDFCache = jsPDF
+  return jsPDFCache
+}
 
 /**
  * BlobをJPEG Data URLに変換（圧縮）
@@ -92,7 +105,7 @@ export async function generatePdfFromSlides(
     const pageHeightMm = (height / DPI) * MM_PER_INCH
 
     // jsPDFを動的にロード（canvg, html2canvasを含む大きなライブラリのため遅延ロード）
-    const { jsPDF } = await import('jspdf')
+    const jsPDF = await getJsPDF()
     const pdf = new jsPDF({
       orientation: aspectRatio > 1 ? 'landscape' : 'portrait',
       unit: 'mm',

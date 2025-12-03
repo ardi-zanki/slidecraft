@@ -10,6 +10,17 @@
 
 import type PptxGenJS from 'pptxgenjs'
 import { blobToDataUrl } from './graphic-extractor.client'
+
+// PptxGenJSを動的にロードしてキャッシュ
+let pptxGenJSCache: typeof PptxGenJS | null = null
+
+async function getPptxGenJS(): Promise<typeof PptxGenJS> {
+  if (pptxGenJSCache) {
+    return pptxGenJSCache
+  }
+  pptxGenJSCache = (await import('pptxgenjs')).default
+  return pptxGenJSCache
+}
 import type {
   ExtractedGraphic,
   ShapeElement,
@@ -395,7 +406,7 @@ export async function generatePptx(
   } = options
 
   // PptxGenJSを動的にロード（約1MBの大きなライブラリのため遅延ロード）
-  const PptxGenJS = (await import('pptxgenjs')).default
+  const PptxGenJS = await getPptxGenJS()
   const pptx = new PptxGenJS()
   pptx.layout = 'LAYOUT_16x9'
   pptx.title = analysis.slideTitle
