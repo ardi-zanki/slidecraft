@@ -4,7 +4,7 @@
  * 動的importとワーカー設定のテスト
  */
 
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 describe('pdf-processor.client', () => {
   describe('動的import', () => {

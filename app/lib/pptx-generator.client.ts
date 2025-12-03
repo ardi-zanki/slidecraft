@@ -10,6 +10,14 @@
 
 import type PptxGenJS from 'pptxgenjs'
 import { blobToDataUrl } from './graphic-extractor.client'
+import type {
+  ExtractedGraphic,
+  ShapeElement,
+  SlideAnalysis,
+  TableCell,
+  TableElement,
+  TextElement,
+} from './slide-analysis'
 
 // PptxGenJSを動的にロードしてキャッシュ
 let pptxGenJSCache: typeof PptxGenJS | null = null
@@ -27,14 +35,6 @@ async function getPptxGenJS(): Promise<typeof PptxGenJS> {
     )
   }
 }
-import type {
-  ExtractedGraphic,
-  ShapeElement,
-  SlideAnalysis,
-  TableCell,
-  TableElement,
-  TextElement,
-} from './slide-analysis'
 
 // スライドサイズ（インチ）- 16:9フォーマット
 const SLIDE_WIDTH = 10
