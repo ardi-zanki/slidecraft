@@ -3,9 +3,12 @@
  *
  * このファイルは .client.ts 拡張子を使用しており、クライアントサイドでのみバンドルされる。
  * PptxGenJSを使用してスライド解析結果からPowerPointファイルを生成する。
+ *
+ * 注: PptxGenJSは約1MBの大きなライブラリのため、動的importで遅延ロードする。
+ * これにより初期バンドルサイズを大幅に削減できる。
  */
 
-import PptxGenJS from 'pptxgenjs'
+import type PptxGenJS from 'pptxgenjs'
 import { blobToDataUrl } from './graphic-extractor.client'
 import type {
   ExtractedGraphic,
@@ -15,6 +18,23 @@ import type {
   TableElement,
   TextElement,
 } from './slide-analysis'
+
+// PptxGenJSを動的にロードしてキャッシュ
+let pptxGenJSCache: typeof PptxGenJS | null = null
+
+async function getPptxGenJS(): Promise<typeof PptxGenJS> {
+  if (pptxGenJSCache) {
+    return pptxGenJSCache
+  }
+  try {
+    pptxGenJSCache = (await import('pptxgenjs')).default
+    return pptxGenJSCache
+  } catch {
+    throw new Error(
+      'PPTX生成ライブラリの読み込みに失敗しました。ページを再読み込みしてください。',
+    )
+  }
+}
 
 // スライドサイズ（インチ）- 16:9フォーマット
 const SLIDE_WIDTH = 10
@@ -391,6 +411,8 @@ export async function generatePptx(
     fileName = `${analysis.slideTitle || 'slide'}.pptx`,
   } = options
 
+  // PptxGenJSを動的にロード（約1MBの大きなライブラリのため遅延ロード）
+  const PptxGenJS = await getPptxGenJS()
   const pptx = new PptxGenJS()
   pptx.layout = 'LAYOUT_16x9'
   pptx.title = analysis.slideTitle
