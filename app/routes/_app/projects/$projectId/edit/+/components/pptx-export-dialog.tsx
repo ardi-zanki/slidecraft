@@ -42,6 +42,7 @@ export function PptxExportDialog({
     graphics,
     pptxResult,
     usage,
+    processingTime,
     isProcessing,
     setSelectedModel,
     handleAnalyze,
@@ -149,6 +150,40 @@ export function PptxExportDialog({
                   />
                 ))}
 
+                {/* シェイプ要素（オレンジ） */}
+                {analysis.shapeElements?.map((shape) => (
+                  <div
+                    key={`shape-${shape.x}-${shape.y}-${shape.type}`}
+                    role="img"
+                    aria-label={`シェイプ要素: ${shape.type}${shape.text ? ` (${shape.text})` : ''}`}
+                    className="absolute border-2 border-orange-500 bg-orange-500/20"
+                    style={{
+                      left: `${shape.x}%`,
+                      top: `${shape.y}%`,
+                      width: `${shape.width}%`,
+                      height: `${shape.height}%`,
+                    }}
+                    title={`${shape.type}${shape.text ? `: ${shape.text}` : ''}`}
+                  />
+                ))}
+
+                {/* テーブル要素（紫） */}
+                {analysis.tableElements?.map((table, idx) => (
+                  <div
+                    key={`table-${table.x}-${table.y}-${idx}`}
+                    role="img"
+                    aria-label="テーブル要素"
+                    className="absolute border-2 border-purple-500 bg-purple-500/20"
+                    style={{
+                      left: `${table.x}%`,
+                      top: `${table.y}%`,
+                      width: `${table.width}%`,
+                      height: `${table.height}%`,
+                    }}
+                    title="テーブル"
+                  />
+                ))}
+
                 {/* グラフィック領域（緑） */}
                 {analysis.graphicRegions.map((region) => (
                   <div
@@ -188,16 +223,30 @@ export function PptxExportDialog({
             <div className="rounded-lg bg-slate-50 p-3 text-sm">
               <div className="flex flex-wrap gap-x-4 gap-y-1">
                 <div>
-                  <span className="font-medium text-blue-600">
-                    テキスト要素:
-                  </span>{' '}
-                  {analysis.textElements.length}件
+                  <span className="font-medium text-blue-600">テキスト:</span>{' '}
+                  {analysis.textElements.length}
                 </div>
+                {(analysis.shapeElements?.length ?? 0) > 0 && (
+                  <div>
+                    <span className="font-medium text-orange-600">
+                      シェイプ:
+                    </span>{' '}
+                    {analysis.shapeElements?.length}
+                  </div>
+                )}
+                {(analysis.tableElements?.length ?? 0) > 0 && (
+                  <div>
+                    <span className="font-medium text-purple-600">
+                      テーブル:
+                    </span>{' '}
+                    {analysis.tableElements?.length}
+                  </div>
+                )}
                 <div>
                   <span className="font-medium text-emerald-600">
                     グラフィック:
                   </span>{' '}
-                  {graphics.length}件
+                  {graphics.length}
                 </div>
                 {usage && (
                   <>
@@ -214,6 +263,14 @@ export function PptxExportDialog({
                       ¥{usage.costJpy.toFixed(2)}
                     </div>
                   </>
+                )}
+                {processingTime !== null && (
+                  <div>
+                    <span className="font-medium text-slate-600">
+                      処理時間:
+                    </span>{' '}
+                    {processingTime.toFixed(1)}秒
+                  </div>
                 )}
               </div>
             </div>

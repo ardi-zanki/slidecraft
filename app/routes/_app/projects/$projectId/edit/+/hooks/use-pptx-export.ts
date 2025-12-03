@@ -41,15 +41,18 @@ export function usePptxExport({
   const [graphics, setGraphics] = useState<ExtractedGraphic[]>([])
   const [pptxResult, setPptxResult] = useState<GeneratePptxResult | null>(null)
   const [usage, setUsage] = useState<UsageInfo | null>(null)
+  const [processingTime, setProcessingTime] = useState<number | null>(null)
 
   const abortControllerRef = useRef<AbortController | null>(null)
   const isActiveRef = useRef(true)
+  const startTimeRef = useRef<number | null>(null)
 
   // ダイアログを閉じるときに呼び出すリセット関数
   const reset = useCallback(() => {
     isActiveRef.current = false
     abortControllerRef.current?.abort()
     abortControllerRef.current = null
+    startTimeRef.current = null
 
     setState('idle')
     setError(null)
@@ -57,6 +60,7 @@ export function usePptxExport({
     setGraphics([])
     setPptxResult(null)
     setUsage(null)
+    setProcessingTime(null)
   }, [])
 
   const handleAnalyze = useCallback(async () => {
@@ -72,10 +76,12 @@ export function usePptxExport({
     }
 
     setError(null)
+    setProcessingTime(null)
     setState('analyzing')
 
     isActiveRef.current = true
     abortControllerRef.current = new AbortController()
+    startTimeRef.current = performance.now()
 
     try {
       // スライド解析
@@ -114,6 +120,12 @@ export function usePptxExport({
 
       setPptxResult(pptx)
       setState('ready')
+
+      // 処理時間を計算
+      if (startTimeRef.current) {
+        setProcessingTime((performance.now() - startTimeRef.current) / 1000)
+      }
+
       trackPptxExportAnalyzeComplete(selectedModel)
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') {
@@ -148,6 +160,7 @@ export function usePptxExport({
     graphics,
     pptxResult,
     usage,
+    processingTime,
     isProcessing,
 
     // アクション
