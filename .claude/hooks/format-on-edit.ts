@@ -1,61 +1,40 @@
 import { defineHook, runHook } from 'cc-hooks-ts'
 import { execSync } from 'node:child_process'
-import { match, P } from 'ts-pattern'
 
-// cc-hooks-ts の型定義に MultiEdit がないため、string リテラルで対応
-const EDIT_TOOLS = P.union(
-  'Write' as const,
-  'Edit' as const,
-  'MultiEdit' as string,
-)
+const FORMATTABLE_EXTENSIONS = [
+  '.ts',
+  '.tsx',
+  '.js',
+  '.jsx',
+  '.json',
+  '.md',
+  '.css',
+]
 
-const formatOnEditHook = defineHook({
+const formatHook = defineHook({
   trigger: {
-    PostToolUse: true,
+    PostToolUse: {
+      Write: true,
+      Edit: true,
+    },
   },
-  run: (context) =>
-    match(context.input)
-      .with(
-        {
-          tool_name: EDIT_TOOLS,
-          tool_input: { file_path: P.string.endsWith('.ts') },
-        },
-        {
-          tool_name: EDIT_TOOLS,
-          tool_input: { file_path: P.string.endsWith('.tsx') },
-        },
-        {
-          tool_name: EDIT_TOOLS,
-          tool_input: { file_path: P.string.endsWith('.js') },
-        },
-        {
-          tool_name: EDIT_TOOLS,
-          tool_input: { file_path: P.string.endsWith('.jsx') },
-        },
-        {
-          tool_name: EDIT_TOOLS,
-          tool_input: { file_path: P.string.endsWith('.json') },
-        },
-        {
-          tool_name: EDIT_TOOLS,
-          tool_input: { file_path: P.string.endsWith('.md') },
-        },
-        {
-          tool_name: EDIT_TOOLS,
-          tool_input: { file_path: P.string.endsWith('.css') },
-        },
-        ({ tool_input }) => {
-          try {
-            execSync(`pnpm exec prettier --write "${tool_input.file_path}"`, {
-              stdio: 'inherit',
-            })
-          } catch {
-            // prettier failed, but don't block the workflow
-          }
-          return context.success()
-        },
-      )
-      .otherwise(() => context.success()),
+  run: (context) => {
+    const toolInput = context.input.tool_input
+    const filePath = toolInput.file_path
+
+    if (
+      filePath &&
+      FORMATTABLE_EXTENSIONS.some((ext) => filePath.endsWith(ext))
+    ) {
+      try {
+        execSync(`pnpm exec prettier --write "${filePath}"`, {
+          stdio: 'inherit',
+        })
+      } catch {}
+    }
+
+    return context.success()
+  },
 })
 
-await runHook(formatOnEditHook)
+await runHook(formatHook)
