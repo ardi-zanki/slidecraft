@@ -23,7 +23,7 @@
     "validate": "run-p format lint && run-p typecheck",
     "db:migrate": "atlas migrate diff --env local",
     "db:apply": "atlas migrate apply --env local",
-    "db:codegen": "kysely-codegen --dialect libsql --url 'file:./data/local.db' --camel-case --out-file app/lib/db/types.ts",
+    "db:codegen": "kysely-codegen --dialect libsql --url 'file:./data/local.db' --camel-case --out-file app/lib/db/types.ts --exclude-pattern atlas_schema_revisions",
     "turso:apply": "dotenv -e .env.production -- atlas schema apply --env turso",
     "turso:shell": "turso db shell slidecraft"
   },
