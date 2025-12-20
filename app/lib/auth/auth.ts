@@ -42,12 +42,6 @@ export const auth = betterAuth({
     db,
     type: 'sqlite',
   },
-  advanced: {
-    database: {
-      // Kysely uses snake_case column names
-      generateId: false,
-    },
-  },
   user: {
     modelName: 'user',
     fields: {

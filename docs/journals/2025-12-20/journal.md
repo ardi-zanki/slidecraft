@@ -311,3 +311,87 @@ export { jsonArrayFrom, jsonObjectFrom } from 'kysely/helpers/sqlite'
 - Kysely クエリを camelCase で記述可能
 - 型定義とクエリが一貫した命名規則
 - 型チェック・テスト通過（101 passed, 3 skipped）
+
+---
+
+## kysely-codegen による型自動生成
+
+### ユーザー指示
+
+「型定義 kysely codegen つかいたい」「exclude 効くと思うんだけどなあ。ちゃんとしらべたい」
+
+### ユーザー意図
+
+DB スキーマから Kysely の型定義を自動生成したい。手動での型定義メンテナンスを不要に。
+
+### 実施内容
+
+#### 1. kysely-codegen のインストール
+
+```bash
+pnpm add -D kysely-codegen
+```
+
+#### 2. 型生成スクリプトの追加
+
+`--exclude-pattern` オプションで `atlas_schema_revisions` テーブルを除外:
+
+```json
+"db:codegen": "kysely-codegen --dialect libsql --url 'file:./data/local.db' --camel-case --out-file app/lib/db/types.ts --exclude-pattern atlas_schema_revisions"
+```
+
+当初 `--exclude-pattern` が効かないと思っていたが、パターンの書き方の問題だった。ワイルドカードを使わず、テーブル名を直接指定することで正しく除外できた。
+
+#### 3. 型名の変更
+
+kysely-codegen が生成する型名 `DB` に合わせて、コード内の `Database` を `DB` に変更:
+
+- `app/lib/db/kysely.ts`
+- `app/routes/api/cron/cleanup-sessions/+/cleanup.ts`
+
+#### 4. 不要テーブルの削除
+
+ローカル DB から `_prisma_migrations` テーブルを削除（移行完了のため不要）。
+
+### 成果物
+
+- `pnpm db:codegen` で型定義を自動生成
+- システムテーブル（`atlas_schema_revisions`）を除外
+- 型チェック・テスト通過（101 passed, 3 skipped）
+
+---
+
+## better-auth の ID 生成エラー修正
+
+### ユーザー指示
+
+「[Auth Middleware] Failed to get/create session: Error: NOT NULL constraint failed: user.id」
+
+### ユーザー意図
+
+匿名ユーザー作成時に発生するエラーを修正したい。
+
+### 実施内容
+
+#### 原因調査
+
+エラーメッセージから、user.id カラムに NULL が挿入されようとしていることが判明。`app/lib/auth/auth.ts` を確認したところ、以下の設定が原因だった:
+
+```typescript
+advanced: {
+  database: {
+    generateId: false,
+  },
+},
+```
+
+この設定は better-auth による ID 自動生成を無効化する。Prisma 移行時に誤って残っていた設定と思われる。
+
+#### 修正
+
+`advanced.database.generateId: false` の設定ブロックを削除。better-auth がデフォルトで ID を生成するようになった。
+
+### 成果物
+
+- 匿名ユーザー作成時のエラー解消
+- 型チェック・テスト通過（101 passed, 3 skipped）
