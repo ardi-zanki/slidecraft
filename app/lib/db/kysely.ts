@@ -1,6 +1,6 @@
 import { createClient } from '@libsql/client'
 import { LibsqlDialect } from '@libsql/kysely-libsql'
-import { Kysely } from 'kysely'
+import { CamelCasePlugin, Kysely } from 'kysely'
 import type { Database } from './types'
 
 const LOCAL_DATABASE_URL = 'file:./data/local.db'
@@ -16,4 +16,8 @@ const client = createClient({
 
 export const db = new Kysely<Database>({
   dialect: new LibsqlDialect({ client }),
+  plugins: [new CamelCasePlugin()],
 })
+
+// JSON 集約ヘルパーを re-export
+export { jsonArrayFrom, jsonObjectFrom } from 'kysely/helpers/sqlite'

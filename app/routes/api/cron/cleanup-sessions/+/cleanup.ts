@@ -26,7 +26,7 @@ export async function cleanupSessions(db: Kysely<Database>) {
   // 1. 期限切れセッションを削除
   const deletedSessionsResult = await db
     .deleteFrom('session')
-    .where('expires_at', '<', now)
+    .where('expiresAt', '<', now)
     .execute()
 
   const deletedSessions = deletedSessionsResult.reduce(
@@ -36,14 +36,11 @@ export async function cleanupSessions(db: Kysely<Database>) {
 
   // 2. セッションを持たない匿名ユーザーを削除
   // サブクエリでセッションを持つユーザーIDを取得し、それ以外の匿名ユーザーを削除
-  const usersWithSessions = db
-    .selectFrom('session')
-    .select('user_id')
-    .distinct()
+  const usersWithSessions = db.selectFrom('session').select('userId').distinct()
 
   const deletedUsersResult = await db
     .deleteFrom('user')
-    .where('is_anonymous', '=', 1)
+    .where('isAnonymous', '=', 1)
     .where('id', 'not in', usersWithSessions)
     .execute()
 

@@ -72,17 +72,17 @@ export async function action({ request }: Route.ActionArgs) {
     }
 
     await db
-      .insertInto('api_usage_log')
+      .insertInto('apiUsageLog')
       .values({
         id: crypto.randomUUID(),
-        user_id: userId,
+        userId,
         operation: validatedData.operation,
         model: validatedData.model,
-        input_tokens: validatedData.inputTokens,
-        output_tokens: validatedData.outputTokens,
-        cost_usd: validatedData.costUsd,
-        cost_jpy: validatedData.costJpy,
-        exchange_rate: validatedData.exchangeRate,
+        inputTokens: validatedData.inputTokens,
+        outputTokens: validatedData.outputTokens,
+        costUsd: validatedData.costUsd,
+        costJpy: validatedData.costJpy,
+        exchangeRate: validatedData.exchangeRate,
         metadata: metadataJson,
       })
       .execute()

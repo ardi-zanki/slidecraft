@@ -5,11 +5,11 @@ export interface UserTable {
   id: string
   name: string
   email: string
-  email_verified: number // SQLite uses 0/1 for boolean
+  emailVerified: number // SQLite uses 0/1 for boolean
   image: string | null
-  created_at: Generated<string>
-  updated_at: Generated<string>
-  is_anonymous: number // SQLite uses 0/1 for boolean
+  createdAt: Generated<string>
+  updatedAt: Generated<string>
+  isAnonymous: number // SQLite uses 0/1 for boolean
 }
 
 export type User = Selectable<UserTable>
@@ -19,13 +19,13 @@ export type UserUpdate = Updateable<UserTable>
 // Session table
 export interface SessionTable {
   id: string
-  expires_at: string
+  expiresAt: string
   token: string
-  created_at: Generated<string>
-  updated_at: Generated<string>
-  ip_address: string | null
-  user_agent: string | null
-  user_id: string
+  createdAt: Generated<string>
+  updatedAt: Generated<string>
+  ipAddress: string | null
+  userAgent: string | null
+  userId: string
 }
 
 export type Session = Selectable<SessionTable>
@@ -35,18 +35,18 @@ export type SessionUpdate = Updateable<SessionTable>
 // Account table
 export interface AccountTable {
   id: string
-  account_id: string
-  provider_id: string
-  user_id: string
-  access_token: string | null
-  refresh_token: string | null
-  id_token: string | null
-  access_token_expires_at: string | null
-  refresh_token_expires_at: string | null
+  accountId: string
+  providerId: string
+  userId: string
+  accessToken: string | null
+  refreshToken: string | null
+  idToken: string | null
+  accessTokenExpiresAt: string | null
+  refreshTokenExpiresAt: string | null
   scope: string | null
   password: string | null
-  created_at: Generated<string>
-  updated_at: Generated<string>
+  createdAt: Generated<string>
+  updatedAt: Generated<string>
 }
 
 export type Account = Selectable<AccountTable>
@@ -58,9 +58,9 @@ export interface VerificationTable {
   id: string
   identifier: string
   value: string
-  expires_at: string
-  created_at: Generated<string>
-  updated_at: Generated<string>
+  expiresAt: string
+  createdAt: Generated<string>
+  updatedAt: Generated<string>
 }
 
 export type Verification = Selectable<VerificationTable>
@@ -70,15 +70,15 @@ export type VerificationUpdate = Updateable<VerificationTable>
 // API Usage Log table
 export interface ApiUsageLogTable {
   id: string
-  created_at: Generated<string>
-  user_id: string | null
+  createdAt: Generated<string>
+  userId: string | null
   operation: string
   model: string
-  input_tokens: number
-  output_tokens: number
-  cost_usd: number
-  cost_jpy: number
-  exchange_rate: number
+  inputTokens: number
+  outputTokens: number
+  costUsd: number
+  costJpy: number
+  exchangeRate: number
   metadata: string | null
 }
 
@@ -92,5 +92,5 @@ export interface Database {
   session: SessionTable
   account: AccountTable
   verification: VerificationTable
-  api_usage_log: ApiUsageLogTable
+  apiUsageLog: ApiUsageLogTable
 }
