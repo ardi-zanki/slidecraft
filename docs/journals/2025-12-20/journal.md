@@ -218,3 +218,96 @@ EOF
 - validate 失敗時は PR マージ不可
 - validate 成功時のみマイグレーション実行
 - Vercel デプロイ前に DB が更新される
+
+---
+
+## better-auth カラム名マッピングと CamelCasePlugin
+
+### ユーザー指示
+
+「table user has no column named emailVerified」「kysely の camel case plugin いれたいね。kysely 使う側の話だけど。jsonaggregate plugin も」
+
+### ユーザー意図
+
+better-auth が camelCase のカラム名を期待しているが、DB スキーマは snake_case。Kysely クエリを camelCase で書きたい。
+
+### 実施内容
+
+#### 1. better-auth のカラム名マッピング
+
+better-auth は Kysely の CamelCasePlugin を経由せず直接 SQL を発行するため、明示的なカラム名マッピングが必要:
+
+```typescript
+export const auth = betterAuth({
+  database: { db, type: 'sqlite' },
+  user: {
+    fields: {
+      emailVerified: 'email_verified',
+      createdAt: 'created_at',
+      // ...
+    },
+  },
+  session: { fields: { ... } },
+  account: { fields: { ... } },
+  verification: { fields: { ... } },
+})
+```
+
+#### 2. Kysely CamelCasePlugin 追加
+
+Kysely に組み込みの `CamelCasePlugin` を追加。追加パッケージ不要:
+
+```typescript
+import { CamelCasePlugin, Kysely } from 'kysely'
+
+export const db = new Kysely<Database>({
+  dialect: new LibsqlDialect({ client }),
+  plugins: [new CamelCasePlugin()],
+})
+```
+
+これにより、型定義とクエリを camelCase で書ける。SQL 生成時に自動で snake_case に変換される。
+
+#### 3. 型定義の camelCase 化
+
+`app/lib/db/types.ts` のカラム名を snake_case から camelCase に変更:
+
+```typescript
+// Before
+interface UserTable {
+  email_verified: number
+  created_at: Generated<string>
+}
+
+// After
+interface UserTable {
+  emailVerified: number
+  createdAt: Generated<string>
+}
+```
+
+#### 4. クエリの camelCase 化
+
+アプリケーションコードのクエリを camelCase に更新:
+
+```typescript
+// Before
+db.insertInto('api_usage_log').values({ user_id, input_tokens })
+
+// After
+db.insertInto('apiUsageLog').values({ userId, inputTokens })
+```
+
+#### 5. JSON 集約ヘルパーの re-export
+
+`jsonArrayFrom`, `jsonObjectFrom` を `~/lib/db/kysely` から使えるように:
+
+```typescript
+export { jsonArrayFrom, jsonObjectFrom } from 'kysely/helpers/sqlite'
+```
+
+### 成果物
+
+- Kysely クエリを camelCase で記述可能
+- 型定義とクエリが一貫した命名規則
+- 型チェック・テスト通過（101 passed, 3 skipped）

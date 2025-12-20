@@ -23,6 +23,7 @@
     "validate": "run-p format lint && run-p typecheck",
     "db:migrate": "atlas migrate diff --env local",
     "db:apply": "atlas migrate apply --env local",
+    "db:codegen": "kysely-codegen --dialect libsql --url 'file:./data/local.db' --camel-case --out-file app/lib/db/types.ts",
     "turso:apply": "dotenv -e .env.production -- atlas schema apply --env turso",
     "turso:shell": "turso db shell slidecraft"
   },
@@ -70,6 +71,7 @@
     "cc-hooks-ts": "2.0.56",
     "dotenv-cli": "11.0.0",
     "happy-dom": "20.0.11",
+    "kysely-codegen": "0.19.0",
     "npm-run-all": "4.1.5",
     "prettier": "3.7.4",
     "prettier-plugin-organize-imports": "4.3.0",

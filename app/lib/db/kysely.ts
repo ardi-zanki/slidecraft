@@ -1,7 +1,7 @@
 import { createClient } from '@libsql/client'
 import { LibsqlDialect } from '@libsql/kysely-libsql'
 import { CamelCasePlugin, Kysely } from 'kysely'
-import type { Database } from './types'
+import type { DB } from './types'
 
 const LOCAL_DATABASE_URL = 'file:./data/local.db'
 
@@ -14,7 +14,7 @@ const client = createClient({
   authToken: isTurso ? process.env.DATABASE_AUTH_TOKEN : undefined,
 })
 
-export const db = new Kysely<Database>({
+export const db = new Kysely<DB>({
   dialect: new LibsqlDialect({ client }),
   plugins: [new CamelCasePlugin()],
 })

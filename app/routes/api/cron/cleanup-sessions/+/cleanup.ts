@@ -1,5 +1,5 @@
 import type { Kysely } from 'kysely'
-import type { Database } from '~/lib/db/types'
+import type { DB } from '~/lib/db/types'
 
 /**
  * Cron 認証を検証
@@ -20,7 +20,7 @@ export function verifyCronAuth(
 /**
  * セッションクリーンアップを実行
  */
-export async function cleanupSessions(db: Kysely<Database>) {
+export async function cleanupSessions(db: Kysely<DB>) {
   const now = new Date().toISOString()
 
   // 1. 期限切れセッションを削除
