@@ -78,7 +78,10 @@ function getDurably() {
       },
     )
   }
-  return { durably, testJob: testJob! }
+  if (!testJob) {
+    throw new Error('testJob is not initialized')
+  }
+  return { durably, testJob }
 }
 
 function sleep(ms: number) {
@@ -226,8 +229,8 @@ export default function DurablyTestPage() {
                 完了: {result.total} ステップ
               </p>
               <ul className="space-y-1 text-sm text-emerald-700">
-                {result.steps.map((step, i) => (
-                  <li key={i}>• {step}</li>
+                {result.steps.map((step) => (
+                  <li key={step}>• {step}</li>
                 ))}
               </ul>
             </div>
@@ -247,7 +250,7 @@ export default function DurablyTestPage() {
               {logs.length === 0 ? (
                 <p className="text-slate-500">ログなし</p>
               ) : (
-                logs.map((log, i) => <div key={i}>{log}</div>)
+                logs.map((log) => <div key={log}>{log}</div>)
               )}
             </div>
           </div>
