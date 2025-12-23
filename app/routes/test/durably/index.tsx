@@ -110,7 +110,8 @@ export default function DurablyTestPage() {
               </p>
               <ul className="space-y-1 text-sm text-emerald-700">
                 {state.result.steps.map((step, idx) => (
-                  <li key={`step-${idx}-${step.slice(0, 20)}`}>• {step}</li>
+                  // biome-ignore lint/suspicious/noArrayIndexKey: 追記専用配列のため安全
+                  <li key={idx}>• {step}</li>
                 ))}
               </ul>
             </div>
@@ -131,7 +132,8 @@ export default function DurablyTestPage() {
                 <p className="text-slate-500">ログなし</p>
               ) : (
                 state.logs.map((log, idx) => (
-                  <div key={`log-${idx}-${log.slice(1, 15)}`}>{log}</div>
+                  // biome-ignore lint/suspicious/noArrayIndexKey: 追記専用配列のため安全
+                  <div key={idx}>{log}</div>
                 ))
               )}
             </div>
